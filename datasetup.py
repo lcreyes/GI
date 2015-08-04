@@ -23,4 +23,4 @@ def test_data():
     test = np.random.rand(NumberOfTestPoints, NumberOfFeatures)
     labels = np.random.randint(2, size=NumberOfDataPoints)
 
-    return data, test, labels
+    return data, labels, test
