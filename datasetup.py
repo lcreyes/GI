@@ -4,12 +4,15 @@
 import numpy as np
 import pandas as pd
 from sklearn.cross_validation import StratifiedShuffleSplit
-
+from sklearn import preprocessing
 
 def load_data(fn):
     print(fn)
     df = pd.read_csv(fn)
-    return df
+    label=df['label']
+    features=df.iloc[:,4:19]
+    features_scaled = preprocessing.scale(features.values)
+    return label.values, features_scaled
 
 
 def split_train_data(y):  # TODO control with config, move to runner / add value with real df
