@@ -2,7 +2,7 @@
 """
 
 import matplotlib.pyplot as plt
-from sklearn.metrics import auc
+from sklearn.metrics import auc, roc_auc_score
 from plotter import reliability_curve
 import os.path
 
@@ -19,5 +19,5 @@ def all_benchmarks(prob_pos, labels, clf_name, out_path):
     reliability_curve(prob_pos, labels, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
 
-    auc_score = auc(prob_pos, labels, reorder=True)
+    auc_score = roc_auc_score (labels, prob_pos)
     print '{} AUC Score = {}'.format(clf_name, auc_score)
