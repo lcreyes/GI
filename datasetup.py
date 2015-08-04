@@ -3,6 +3,7 @@
 
 import numpy as np
 import pandas as pd
+from sklearn.cross_validation import StratifiedShuffleSplit
 
 
 def load_data(fn):
@@ -10,7 +11,10 @@ def load_data(fn):
     df = pd.read_csv(fn)
     return df
 
-# TODO stratifiying
+
+def split_train_data(y):  # TODO control with config, move to runner / add value with real df
+  sss = StratifiedShuffleSplit(y, 10, test_size=0.2, random_state=0)
+  return sss
 
 
 def test_data():
