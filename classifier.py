@@ -1,8 +1,4 @@
-""" Run classifiers on data
+""" Any new classififers - defunct?
 """
 
-# TODO Random forests
 
-# TODO SVM
-
-# TODO Logistic regression
