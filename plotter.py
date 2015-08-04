@@ -21,7 +21,7 @@ def reliability_curve(prob_pos, test_labels, clf_name):
     ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
              label="%s" % (clf_name, ))
 
-    ax2.hist(prob_pos, range=(0, 1), bins=10, label=clf_name, histtype="step", lw=2)
+    ax2.hist(prob_pos, range=(0, 1), bins=25, label=clf_name, histtype="step", lw=2)
 
     ax1.set_ylabel("Fraction of positives")
     ax1.set_ylim([-0.05, 1.05])

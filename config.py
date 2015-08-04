@@ -10,6 +10,9 @@ from sklearn.pipeline import Pipeline
 config = {
     "data_file": "test_data.csv",
     "out_path": "output",
+    "number_of_folds": 1,
+    "fraction_of_test_events": 0.2,
+    "random_seed": 0,
 }
 
 # Setup BernoulliRBM Neural net with logistic classifier TODO move to custom classifiers module?
