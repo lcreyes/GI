@@ -1,5 +1,7 @@
 from config import config, classifiers
+import matplotlib.pyplot as plt
 from datasetup import load_data, test_data
+from plotter import reliability_curve
 
 import os
 
@@ -11,7 +13,7 @@ if not os.path.isdir(out_path):
 
 # TODO turn df into train_labels, features and test
 
-train_features, train_labels, test_features = test_data()
+train_features, train_labels, test_features, test_labels = test_data()
 
 for clf_name, clf in classifiers.iteritems():
     print("Running {}".format(clf_name))
@@ -22,4 +24,6 @@ for clf_name, clf in classifiers.iteritems():
     else:  # use decision function
         prob_pos = clf.decision_function(test_features)
 
-    print prob_pos
+    # Benchmarking TODO move to own module?
+    reliability_curve(prob_pos, test_labels, clf_name)
+    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))

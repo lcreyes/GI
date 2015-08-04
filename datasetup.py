@@ -12,8 +12,8 @@ def load_data(fn):
 
 # TODO stratifiying
 
-def test_data():
 
+def test_data():
     # from train_data get features and label, in the meantime random stuff
     NumberOfDataPoints = 100
     NumberOfTestPoints = 20
@@ -22,5 +22,6 @@ def test_data():
     data = np.random.rand(NumberOfDataPoints, NumberOfFeatures)
     test = np.random.rand(NumberOfTestPoints, NumberOfFeatures)
     labels = np.random.randint(2, size=NumberOfDataPoints)
+    test_labels = np.random.randint(2, size=NumberOfTestPoints)
 
-    return data, labels, test
+    return data, labels, test, test_labels
