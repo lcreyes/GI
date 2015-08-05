@@ -21,5 +21,8 @@ def all_benchmarks(prob_pos, labels, clf_name, out_path):
     plotter.reliability_curve(prob_pos, labels, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
 
+    plotter.confusion_matrix(prob_pos, labels, clf_name)
+    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)))
+
     auc_score = sklearn.metrics.roc_auc_score(labels, prob_pos)
     print '{} AUC Score = {}'.format(clf_name, auc_score)

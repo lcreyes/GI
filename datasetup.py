@@ -19,7 +19,6 @@ def load_data(fn):
     return label.values, features_scaled
 
 
-
 def split_train_data(y):  # TODO control with config, move to runner / add value with real df
     sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=config.config['number_of_folds'],
                                                       test_size=config.config['fraction_of_test_events'],

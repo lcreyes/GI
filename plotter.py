@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import sklearn.calibration
+import sklearn.preprocessing
+import numpy as np
 import seaborn
 
 
@@ -38,3 +40,34 @@ def reliability_curve(prob_pos, test_labels, clf_name):
     ax3.set_xlabel("Mean predicted value for not positives")
     ax3.set_ylabel("Count")
     ax3.legend(loc="upper center", ncol=2)
+
+
+def confusion_matrix(prob_pos, test_labels, clf_name, threshold=0.5):
+    """
+
+    # Notes
+
+    We have continuous probabilities and a binary expected labels. We therefore need to turn the probabilities
+     into binary using a threshold set at a determined number.
+
+    :param prob_pos:
+    :param test_labels:
+    :param clf_name:
+    :param threshold:
+    :return:
+    """
+
+    binarizer = sklearn.preprocessing.Binarizer(threshold)
+    out_labels = binarizer.transform(prob_pos)[0]
+
+    plt.figure(figsize=(10, 10))
+    cmap = plt.cm.Blues
+
+    plt.title("{} Normalised Confusion Matrix".format(clf_name))
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+    cm = sklearn.metrics.confusion_matrix(out_labels, test_labels)
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    plt.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
+    plt.colorbar()
