@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
-from sklearn.calibration import calibration_curve
-import seaborn  # fancy plots
+import sklearn.calibration
 
 
 def reliability_curve(prob_pos, test_labels, clf_name):
@@ -17,17 +16,15 @@ def reliability_curve(prob_pos, test_labels, clf_name):
     ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
 
     fraction_of_positives, mean_predicted_value = \
-        calibration_curve(test_labels, prob_pos, n_bins=5)
+        sklearn.calibration.calibration_curve(test_labels, prob_pos, n_bins=5)
 
     ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
-             label="%s" % (clf_name, ))
-
+             label="%s" % (clf_name,))
 
     ax2.hist(prob_pos[test_labels.astype(bool)], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
 
     ax3.hist(prob_pos[-(test_labels.astype(bool))], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
 
-   
     ax1.set_ylabel("Fraction of positives")
     ax1.set_ylim([-0.05, 1.05])
     ax1.legend(loc="lower right")
@@ -36,7 +33,7 @@ def reliability_curve(prob_pos, test_labels, clf_name):
     ax2.set_xlabel("Mean predicted value for Positives")
     ax2.set_ylabel("Count")
     ax2.legend(loc="upper center", ncol=2)
-    
+
     ax3.set_xlabel("Mean predicted value for not positives")
     ax3.set_ylabel("Count")
     ax3.legend(loc="upper center", ncol=2)

@@ -1,10 +1,12 @@
 """ Handles more complex benchmarking code and output, probably the loop aswell
 """
 
-import matplotlib.pyplot as plt
-from sklearn.metrics import auc, roc_auc_score
-from plotter import reliability_curve
 import os.path
+
+import matplotlib.pyplot as plt
+import sklearn.metrics
+
+import plotter
 
 
 def all_benchmarks(prob_pos, labels, clf_name, out_path):
@@ -16,8 +18,8 @@ def all_benchmarks(prob_pos, labels, clf_name, out_path):
     :param out_path: output plot/file save path
     :return:
     """
-    reliability_curve(prob_pos, labels, clf_name)
+    plotter.reliability_curve(prob_pos, labels, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
 
-    auc_score = roc_auc_score (labels, prob_pos)
+    auc_score = sklearn.metrics.roc_auc_score(labels, prob_pos)
     print '{} AUC Score = {}'.format(clf_name, auc_score)
