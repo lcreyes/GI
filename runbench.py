@@ -14,9 +14,9 @@ if not os.path.isdir(out_path):
 
 labels, features = datasetup.load_data(config.config['data_file'])
 
-stratifiedShuffledData = datasetup.split_train_data(labels)
+stratified_shuffled_data = datasetup.split_train_data(labels)
 
-for train_index, test_index in stratifiedShuffledData:
+for train_index, test_index in stratified_shuffled_data:
     train_features = features[train_index]
     train_labels = labels[train_index]
     test_features = features[test_index]

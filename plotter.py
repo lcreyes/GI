@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import sklearn.calibration
+import seaborn
 
 
 def reliability_curve(prob_pos, test_labels, clf_name):
@@ -9,7 +10,7 @@ def reliability_curve(prob_pos, test_labels, clf_name):
         License: BSD Style.
     """
     plt.figure(figsize=(10, 10))
-    ax1 = plt.subplot2grid((3, 1), (0, 0), rowspan=3)
+    ax1 = plt.subplot2grid((3, 1), (0, 0))
     ax2 = plt.subplot2grid((3, 1), (1, 0))
     ax3 = plt.subplot2grid((3, 1), (2, 0))
 

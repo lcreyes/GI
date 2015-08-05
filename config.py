@@ -9,9 +9,9 @@ import sklearn.ensemble
 config = {
     "data_file": "test_data.csv",
     "out_path": "output",
-    "number_of_folds": 1,
+    "number_of_folds": 2,
     "fraction_of_test_events": 0.2,
-    "random_seed": 0,
+    "random_seed": 49,
 }
 
 # Setup BernoulliRBM Neural net with logistic classifier TODO move to custom classifiers module?
