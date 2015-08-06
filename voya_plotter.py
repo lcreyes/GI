@@ -5,7 +5,7 @@ import numpy
 import seaborn
 
 
-def reliability_curve(prob_pos, test_labels, clf_name):
+def reliability_curve(test_labels, prob_pos, clf_name):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
@@ -39,7 +39,7 @@ def reliability_curve(prob_pos, test_labels, clf_name):
     ax3.legend(loc="upper center", ncol=2)
 
 
-def confusion_matrix(prob_pos, test_labels, clf_name, threshold=0.5):
+def confusion_matrix(test_labels, prob_pos, clf_name, threshold=0.5):
     """
 
     # Notes

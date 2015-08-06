@@ -36,7 +36,7 @@ def split_train_data(y):  # TODO is there a good reason for a wrapper that just 
     """ Splits the data into traing and test sets using the values given in the config file.
 
     :param y: labels
-    :return: list of size <num_split_iterations> eahc with (train_index, test_index)
+    :return: list of size <num_split_iterations> each with (train_index, test_index)
     """
     sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['num_split_iterations'],
                                                       test_size=voya_config.config['test_size'],

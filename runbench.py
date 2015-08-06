@@ -50,4 +50,4 @@ for split_num, (train_index, test_index) in enumerate(stratified_shuffled_data):
         
         y_pred = clf.predict_proba(X_test)[:, 1]
 
-        benchmarks.all_benchmarks(y_pred, y_test, clf_name_split_num, out_path)
+        benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)

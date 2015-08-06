@@ -9,21 +9,21 @@ import sklearn.metrics
 import voya_plotter
 
 
-def all_benchmarks(prob_pos, labels, clf_name, out_path):
-    """ Runs all benchmarks for given clf result
+def all_benchmarks(y_test, y_pred, clf_name, out_path):
+    """ Runs all the benchmarks for given clf result saving the output to out_path
 
-    :param prob_pos: probabilities from clf algo
-    :param labels: the real (known) labels
+    :param y_pred: predicted labels
+    :param y_test: known labels
     :param clf_name: name of the clf used
     :param out_path: output plot/file save path
     :return:
     """
 
-    voya_plotter.reliability_curve(prob_pos, labels, clf_name)
+    voya_plotter.reliability_curve(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
 
-    voya_plotter.confusion_matrix(prob_pos, labels, clf_name)
+    voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)))
 
-    auc_score = sklearn.metrics.roc_auc_score(labels, prob_pos)
+    auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
     print '{} AUC Score = {}'.format(clf_name, auc_score)
