@@ -30,7 +30,7 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches = 'tight')
 
     voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)))
+    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches = 'tight')
 
     auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
     results_dict['auc_score'] = auc_score
