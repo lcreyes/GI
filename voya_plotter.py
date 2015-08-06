@@ -5,7 +5,7 @@ import numpy
 import seaborn
 
 
-def reliability_curve(test_labels, prob_pos, clf_name):
+def reliability_curve(y_test, y_pred, clf_name):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
@@ -19,7 +19,7 @@ def reliability_curve(test_labels, prob_pos, clf_name):
     ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
 
     fraction_of_positives, mean_predicted_value = \
-        sklearn.calibration.calibration_curve(test_labels, prob_pos, n_bins=5)
+        sklearn.calibration.calibration_curve(y_test, y_pred, n_bins=5)
 
     ax1.set_title('Calibration plots  (reliability curve)')
     ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
@@ -29,33 +29,33 @@ def reliability_curve(test_labels, prob_pos, clf_name):
     ax1.legend(loc="lower right")
 
     ax2.set_xlabel("Mean predicted value for Positives")
-    ax2.hist(prob_pos[test_labels.astype(bool)], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
+    ax2.hist(y_pred[y_test.astype(bool)], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
     ax2.set_ylabel("Count")
     ax2.legend(loc="upper center", ncol=2)
 
-    ax3.hist(prob_pos[-(test_labels.astype(bool))], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
+    ax3.hist(y_pred[-(y_test.astype(bool))], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
     ax3.set_xlabel("Mean predicted value for Negatives")
     ax3.set_ylabel("Count")
     ax3.legend(loc="upper center", ncol=2)
 
 
-def confusion_matrix(test_labels, prob_pos, clf_name, threshold=0.5):
-    """
+def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
+    """ Generates the plot for the confusin matrix
 
-    # Notes
+    Also does (which maybe it shouldnt)
+    * Binarizer step (probabilities to 0 and 1) which should really be done and decided elsewhere
+    * confusion matrix generation
 
-    We have continuous probabilities and a binary expected labels. We therefore need to turn the probabilities
-     into binary using a threshold set at a determined number.
-
-    :param prob_pos:
-    :param test_labels:
+    :param y_test:
+    :param y_pred:
     :param clf_name:
     :param threshold:
     :return:
     """
 
+    # TODO may want to move cm generation code out of here if we also want numeric output
     binarizer = sklearn.preprocessing.Binarizer(threshold)
-    out_labels = binarizer.transform(prob_pos)[0]
+    y_pred_binary = binarizer.transform(y_pred)[0]
 
     plt.figure(figsize=(10, 10))
     cmap = plt.cm.Blues
@@ -64,7 +64,7 @@ def confusion_matrix(test_labels, prob_pos, clf_name, threshold=0.5):
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
-    cm = sklearn.metrics.confusion_matrix(out_labels, test_labels)
+    cm = sklearn.metrics.confusion_matrix(y_pred_binary, y_test)
     cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, numpy.newaxis]
     plt.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
     plt.colorbar()
