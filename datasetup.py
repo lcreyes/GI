@@ -38,13 +38,12 @@ def split_train_data(y, X):  # TODO is there a good reason for a wrapper that ju
     :param y: labels
     :return: list of (X_train, y_train, X_test, y_test) for each split
     """
-    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['num_split_iterations'],
-                                                      test_size=voya_config.config['test_size'],
-                                                      random_state=voya_config.config['random_seed'])
+
+    skf = sklearn.cross_validation.StratifiedKFold(y, n_folds=voya_config.config['num_folds'])
 
     data_splits = []
 
-    for train_index, test_index in sss:
+    for train_index, test_index in skf:
         X_train = X[train_index]
         X_test = X[test_index]
 
