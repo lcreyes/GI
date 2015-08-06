@@ -11,6 +11,7 @@ def reliability_curve(y_test, y_pred, clf_name):
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
+    seaborn.set_style("darkgrid")
     plt.figure(figsize=(10, 10))
     ax1 = plt.subplot2grid((3, 1), (0, 0))
     ax2 = plt.subplot2grid((3, 1), (1, 0))
@@ -58,14 +59,40 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     binarizer = sklearn.preprocessing.Binarizer(threshold)
     y_pred_binary = binarizer.transform(y_pred)[0]
 
+    cm = sklearn.metrics.confusion_matrix(y_pred_binary, y_test)
+
+    seaborn.set_style("white")
     plt.figure(figsize=(10, 10))
+    ax1 = plt.subplot2grid((2, 2), (0, 0))
+    ax2 = plt.subplot2grid((2, 2), (0, 1))
     cmap = plt.cm.Blues
 
-    plt.title("{} Normalised Confusion Matrix".format(clf_name))
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    ax1.set_title("{} Confusion Matrix".format(clf_name))
+    ax1.set_ylabel('True label')
+    ax1.set_xlabel('Predicted label')
+    ax1.locator_params(nbins=4)
 
-    cm = sklearn.metrics.confusion_matrix(y_pred_binary, y_test)
+    confMatrix1 = ax1.imshow(cm, interpolation='nearest', cmap=cmap)
+
+    #Display the values of the conf matrix on the plot
+    cm_bbox = {'facecolor':'white', 'alpha':0.5, 'pad':10}
+    ax1.text(0,0,"%d" %cm[0,0], size=14, ha='center', bbox=cm_bbox)
+    ax1.text(1,0,"%d" %cm[1,0], size=14, ha='center', bbox=cm_bbox)
+    ax1.text(0,1,"%d" %cm[0,1], size=14, ha='center', bbox=cm_bbox)
+    ax1.text(1,1,"%d" %cm[1,1], size=14, ha='center', bbox=cm_bbox)
+
+    plt.colorbar(confMatrix1, ax=ax1)
+
+    ax2.set_title("{} Normalised Confusion Matrix".format(clf_name))
+    ax2.set_ylabel('True label')
+    ax2.set_xlabel('Predicted label')
+
     cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, numpy.newaxis]
-    plt.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
-    plt.colorbar()
+    confMatrix2 = ax2.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
+
+    ax2.text(0,0,"%4.2f" %cm_normalized[0,0], ha='center', size=14, bbox=cm_bbox)
+    ax2.text(1,0,"%4.2f" %cm_normalized[1,0], ha='center', size=14, bbox=cm_bbox)
+    ax2.text(0,1,"%4.2f" %cm_normalized[0,1], ha='center', size=14, bbox=cm_bbox)
+    ax2.text(1,1,"%4.2f" %cm_normalized[1,1], ha='center', size=14, bbox=cm_bbox)
+
+    plt.colorbar(confMatrix2, ax=ax2)
