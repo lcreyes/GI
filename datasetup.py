@@ -32,13 +32,25 @@ def load_data(filename):
     return y.values, X_scaled
 
 
-def split_train_data(y):  # TODO is there a good reason for a wrapper that just fills in the config?
+def split_train_data(y, X):  # TODO is there a good reason for a wrapper that just fills in the config?
     """ Splits the data into traing and test sets using the values given in the config file.
 
     :param y: labels
-    :return: list of size <num_split_iterations> each with (train_index, test_index)
+    :return: list of (X_train, y_train, X_test, y_test) for each split
     """
     sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['num_split_iterations'],
                                                       test_size=voya_config.config['test_size'],
                                                       random_state=voya_config.config['random_seed'])
-    return sss
+
+    data_splits = []
+
+    for train_index, test_index in sss:
+        X_train = X[train_index]
+        X_test = X[test_index]
+
+        y_train = y[train_index]
+        y_test = y[test_index]
+
+        data_splits.append((X_train, y_train, X_test, y_test))
+
+    return data_splits
