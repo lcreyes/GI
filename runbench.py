@@ -27,6 +27,9 @@ import os
 import voya_config
 import datasetup
 import benchmarks
+import numpy as np
+from sklearn.grid_search import GridSearchCV
+from sklearn.cross_validation import cross_val_score
 
 out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
@@ -40,13 +43,22 @@ data_splits = datasetup.split_train_data(y, X)
 results_table_rows = []  # each row is a dict with column_name: value
 for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
-    for clf_name, clf in voya_config.classifiers.iteritems():
+    for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
 
         clf_name_split_num = '{} {}'.format(clf_name, split_num)
         print("Running {} sample {}".format(clf_name_split_num, split_num))
-
-        clf.fit(X_train, y_train)
+        
+        clf = GridSearchCV(estimator=clf_notoptimized, 
+                           param_grid=voya_config.classifiers_gridparameters[clf_name])
+        print("mean auc score from cross validation:", np.mean(cross_val_score(clf.fit(X_train, y_train).best_estimator_, 
+                                                    X_train, y=y_train, scoring='roc_auc'))) 
+ 
+        clf.fit(X_train, y_train).best_estimator_
+        
         y_pred = clf.predict_proba(X_test)[:, 1]
+        
+        #print("clf best score",clf.best_score_)       
+        #print("best estimator", clf.best_estimator_)
 
         bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
 

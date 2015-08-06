@@ -47,8 +47,8 @@ def split_train_data(y, X):  # TODO is there a good reason for a wrapper that ju
         X_train = X[train_index]
         X_test = X[test_index]
 
-        y_train = y[train_index]
-        y_test = y[test_index]
+        y_train = y[train_index].astype(int)
+        y_test = y[test_index].astype(int)
 
         data_splits.append((X_train, y_train, X_test, y_test))
 
