@@ -1,8 +1,25 @@
-""" We use the Sklean syntax of
+""" The main runner script for the Clairvoya benchmark code
+
+[desc]
+
+## Syntax
+
+We use the Sklearn syntax of
 
 clf = classifier
-X =
-y =
+clf_name = classifier name
+X = features from dataset
+y = labels from dataset
+y_pred = predicted labels on test set
+
+X and y are further defined
+
+    X_<test/train>_<split_num>
+
+We split the dataset into a test and training set and we do
+this multiple times, each time has a different split number
+
+eg X_train_0 and y_test_4
 """
 
 import os
@@ -15,25 +32,22 @@ out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
     os.makedirs(out_path)
 
-# TODO turn df into train_labels, features and test
+y, X = datasetup.load_data(voya_config.config['data_file'])
 
-labels, features = datasetup.load_data(voya_config.config['data_file'])
+stratified_shuffled_data = datasetup.split_train_data(y)
 
-stratified_shuffled_data = datasetup.split_train_data(labels)
 
-# TODO move seperation step out of loop and iterate over steps
-# TODO functionalise
-for i, (train_index, test_index) in enumerate(stratified_shuffled_data):
-    train_features = features[train_index]
-    train_labels = labels[train_index]
-    test_features = features[test_index]
-    test_labels = labels[test_index]
+for split_num, (train_index, test_index) in enumerate(stratified_shuffled_data):
+    X_train = X[train_index]
+    y_train = y[train_index]
+    X_test = X[test_index]
+    y_test = y[test_index]
 
     for clf_name, clf in voya_config.classifiers.iteritems():
-        clf_i_name = '{} {}'.format(clf_name, i)
-        print("Running {} sample {}".format(clf_i_name, i))
-        clf.fit(train_features, train_labels)
+        clf_name_split_num = '{} {}'.format(clf_name, split_num)
+        print("Running {} sample {}".format(clf_name_split_num, split_num))
+        clf.fit(X_train, y_train)
         
-        prob_pos = clf.predict_proba(test_features)[:, 1]  # TODO standardise this variable
+        y_pred = clf.predict_proba(X_test)[:, 1]
 
-        benchmarks.all_benchmarks(prob_pos, test_labels, clf_i_name, out_path)
+        benchmarks.all_benchmarks(y_pred, y_test, clf_name_split_num, out_path)
