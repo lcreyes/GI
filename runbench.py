@@ -48,7 +48,7 @@ for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
         print("Running {} sample {}".format(clf_name_split_num, split_num))
         
         clf = GridSearchCV(estimator=clf_notoptimized, 
-                           param_grid=voya_config.classifiers_gridparameters[clf_name])
+                           param_grid=voya_config.classifiers_gridparameters[clf_name], cv=10)
         print("mean auc score from cross validation:", np.mean(cross_val_score(clf.fit(X_train, y_train).best_estimator_, 
                                                     X_train, y=y_train, scoring='roc_auc'))) 
  
