@@ -37,6 +37,7 @@ y, X = datasetup.load_data(voya_config.config['data_file'])
 data_splits = datasetup.split_train_data(y, X)
 
 # TODO loop over split num only needed for cross-validation?
+results_table_rows = []  # each row is a dict with column_name: value
 for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
     for clf_name, clf in voya_config.classifiers.iteritems():
@@ -47,4 +48,10 @@ for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
         clf.fit(X_train, y_train)
         y_pred = clf.predict_proba(X_test)[:, 1]
 
-        benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
+        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
+
+        results_table_rows.append(bench_results)
+
+
+results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
+print results_table
