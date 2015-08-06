@@ -76,10 +76,9 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
 
     #Display the values of the conf matrix on the plot
     cm_bbox = {'facecolor':'white', 'alpha':0.5, 'pad':10}
-    ax1.text(0,0,"%d" %cm[0,0], size=14, ha='center', bbox=cm_bbox)
-    ax1.text(1,0,"%d" %cm[1,0], size=14, ha='center', bbox=cm_bbox)
-    ax1.text(0,1,"%d" %cm[0,1], size=14, ha='center', bbox=cm_bbox)
-    ax1.text(1,1,"%d" %cm[1,1], size=14, ha='center', bbox=cm_bbox)
+    for i in range(2):
+        for j in range(2):
+            ax1.text(i,j,"%d" %cm[i,j], size=14, ha='center', bbox=cm_bbox)
 
     plt.colorbar(confMatrix1, ax=ax1)
 
@@ -90,9 +89,8 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, numpy.newaxis]
     confMatrix2 = ax2.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
 
-    ax2.text(0,0,"%4.2f" %cm_normalized[0,0], ha='center', size=14, bbox=cm_bbox)
-    ax2.text(1,0,"%4.2f" %cm_normalized[1,0], ha='center', size=14, bbox=cm_bbox)
-    ax2.text(0,1,"%4.2f" %cm_normalized[0,1], ha='center', size=14, bbox=cm_bbox)
-    ax2.text(1,1,"%4.2f" %cm_normalized[1,1], ha='center', size=14, bbox=cm_bbox)
+    for i in range(2):
+        for j in range(2):
+            ax2.text(i,j,"%4.2f" %cm_normalized[i,j], ha='center', size=14, bbox=cm_bbox)
 
     plt.colorbar(confMatrix2, ax=ax2)
