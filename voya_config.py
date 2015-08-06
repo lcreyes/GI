@@ -11,7 +11,7 @@ config = {
     "out_path": "output",
     "num_folds": 2,
     "test_size": 0.2,
-    "random_seed": 49,  # currently only for shuffle
+    "random_seed": 49,
 }
 
 # Setup BernoulliRBM Neural net with logistic classifiers

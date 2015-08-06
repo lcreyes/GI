@@ -10,7 +10,7 @@ import pandas
 import voya_plotter
 
 
-def all_benchmarks(y_test, y_pred, clf_name, out_path):
+def all_benchmarks(y_test, y_pred, clf_name, out_path, results_dict):
     """ Runs all the benchmarks for given clf result saving the output to out_path
 
     Current classifier structure for plots is make a function in voya_plotter and call it here currently plots are
@@ -23,17 +23,12 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     :return:
     """
 
-    results_dict = {'clf_name': clf_name}  # a row of the (eventual) results table
-
     # TODO think about structure here, have a common interface and move the params to config like classifiers?
     voya_plotter.reliability_curve(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches = 'tight')
 
     voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches = 'tight')
-
-    auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
-    results_dict['auc_score'] = auc_score
 
     plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
