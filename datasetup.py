@@ -30,26 +30,3 @@ def load_data(filename):
     X_scaled = min_max_scaler.fit_transform(X)
 
     return y.values, X_scaled
-
-
-def split_train_data(y, X):  # TODO is there a good reason for a wrapper that just fills in the config?
-    """ Splits the data into traing and test sets using the values given in the config file.
-
-    :param y: labels
-    :return: list of (X_train, y_train, X_test, y_test) for each split
-    """
-
-    skf = sklearn.cross_validation.StratifiedKFold(y, n_folds=voya_config.config['num_folds'])
-
-    data_splits = []
-
-    for train_index, test_index in skf:
-        X_train = X[train_index]
-        X_test = X[test_index]
-
-        y_train = y[train_index].astype(int)
-        y_test = y[test_index].astype(int)
-
-        data_splits.append((X_train, y_train, X_test, y_test))
-
-    return data_splits

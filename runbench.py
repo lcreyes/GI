@@ -29,7 +29,7 @@ import datasetup
 import benchmarks
 import numpy as np
 from sklearn.grid_search import GridSearchCV
-from sklearn.cross_validation import cross_val_score
+import sklearn.cross_validation
 
 out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
@@ -37,33 +37,36 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
-data_splits = datasetup.split_train_data(y, X)
-
 # TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
-for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
-    for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
+skf = sklearn.cross_validation.StratifiedKFold(y, n_folds=voya_config.config['num_folds'])
+
+for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
+    print("Running {}".format(clf_name))
+    clf = GridSearchCV(estimator=clf_notoptimized, param_grid=voya_config.classifiers_gridparameters[clf_name],
+                       cv=skf)
+
+    # TODO should we give it the whole set or not?
+    clf_optimized = clf.fit(X, y).best_estimator_
+
+    # Train each fold
+    for split_num, (train_index, test_index) in enumerate(skf):
 
         clf_name_split_num = '{} {}'.format(clf_name, split_num)
         print("Running {} sample {}".format(clf_name_split_num, split_num))
 
-        results_dict = {'clf_name': clf_name_split_num}  # a row of the (eventual) results table
-        
-        clf = GridSearchCV(estimator=clf_notoptimized, param_grid=voya_config.classifiers_gridparameters[clf_name],
-                           cv=10)
-                           
-        clf_optimized = clf.fit(X_train, y_train).best_estimator_
+        X_train = X[train_index]
+        X_test = X[test_index]
 
-        # TODO this is a benchmark but doesnt fit into the current logic
-        auc_scores = cross_val_score(clf_optimized.fit(X_train, y_train), X_train, y=y_train, scoring='roc_auc', cv=10)
-        mean_auc_score = np.mean(auc_scores)
-        results_dict['Mean AUC Score'] = mean_auc_score
+        y_train = y[train_index].astype(int)
+        y_test = y[test_index].astype(int)
+
+        clf_optimized.fit(X_train, y_train)
 
         y_pred = clf.predict_proba(X_test)[:, 1]
 
-        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path, results_dict)
-
+        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
         results_table_rows.append(bench_results)
 
 
