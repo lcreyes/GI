@@ -20,7 +20,7 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     """
 
     voya_plotter.reliability_curve(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
+    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches = 'tight')
 
     voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)))

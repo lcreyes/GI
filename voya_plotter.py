@@ -14,7 +14,6 @@ def reliability_curve(y_test, y_pred, clf_name):
     plt.figure(figsize=(10, 10))
     ax1 = plt.subplot2grid((3, 1), (0, 0))
     ax2 = plt.subplot2grid((3, 1), (1, 0))
-    ax3 = plt.subplot2grid((3, 1), (2, 0))
 
     ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
 
@@ -28,15 +27,17 @@ def reliability_curve(y_test, y_pred, clf_name):
     ax1.set_ylim([-0.05, 1.05])
     ax1.legend(loc="lower right")
 
-    ax2.set_xlabel("Mean predicted value for Positives")
-    ax2.hist(y_pred[y_test.astype(bool)], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
-    ax2.set_ylabel("Count")
+    ax2.set_xlabel("Mean predicted value")
+    # for Positives
+    ax2.hist(y_pred[y_test.astype(bool)], range=(0, 1), bins=15, label="Positives",
+            histtype="stepfilled", lw=2, color='b', alpha=0.3, normed=1)
+    ax2.set_ylabel("Normalised count")
     ax2.legend(loc="upper center", ncol=2)
 
-    ax3.hist(y_pred[-(y_test.astype(bool))], range=(0, 1), bins=15, label=clf_name, histtype="step", lw=2)
-    ax3.set_xlabel("Mean predicted value for Negatives")
-    ax3.set_ylabel("Count")
-    ax3.legend(loc="upper center", ncol=2)
+    # for Negatives
+    ax2.hist(y_pred[-(y_test.astype(bool))], range=(0, 1), bins=15, label="Negatives",
+            histtype="stepfilled", lw=2, color='r', alpha=0.3, normed=1)
+    ax2.legend(loc="upper center", ncol=2)
 
 
 def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
