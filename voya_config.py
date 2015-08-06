@@ -9,7 +9,7 @@ import sklearn.ensemble
 config = {
     "data_file": "test_data.csv",
     "out_path": "output",
-    "num_split_iterations": 2,
+    "num_folds":5,
     "test_size": 0.2,
     "random_seed": 49,  # currently only for shuffle
 }

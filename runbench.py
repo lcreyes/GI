@@ -4,7 +4,7 @@
 
 ## Syntax
 
-We use the Sklearn syntax of
+We use the sklearn syntax of
 
 clf = classifier
 clf_name = classifier name
@@ -34,20 +34,17 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
-stratified_shuffled_data = datasetup.split_train_data(y)
+data_splits = datasetup.split_train_data(y, X)
 
-
-for split_num, (train_index, test_index) in enumerate(stratified_shuffled_data):
-    X_train = X[train_index]
-    y_train = y[train_index]
-    X_test = X[test_index]
-    y_test = y[test_index]
+# TODO loop over split num only needed for cross-validation?
+for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
     for clf_name, clf in voya_config.classifiers.iteritems():
+
         clf_name_split_num = '{} {}'.format(clf_name, split_num)
         print("Running {} sample {}".format(clf_name_split_num, split_num))
+
         clf.fit(X_train, y_train)
-        
         y_pred = clf.predict_proba(X_test)[:, 1]
 
         benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
