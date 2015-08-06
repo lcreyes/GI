@@ -9,14 +9,14 @@ import sklearn.ensemble
 config = {
     "data_file": "test_data.csv",
     "out_path": "output",
-    "num_folds":2,
+    "num_folds": 2,
     "test_size": 0.2,
     "random_seed": 49,  # currently only for shuffle
 }
 
 # Setup BernoulliRBM Neural net with logistic classifiers
 logistic = sklearn.linear_model.LogisticRegression()
-rbm = sklearn.neural_network.BernoulliRBM(random_state=0, verbose=True)
+rbm = sklearn.neural_network.BernoulliRBM(random_state=config['random_seed'], verbose=True)
 rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
 
 classifiers = {
