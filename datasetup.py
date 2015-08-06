@@ -8,18 +8,37 @@ import voya_config
 
 
 def load_data(filename):
-    print(filename)
+    """ Loads the data from the given filename in CSV format and scales the features between 0 and 1
+
+    CSV file is expect to have the first row as headers, in the format
+
+        id, id, added__orig_index, cid, label, X_1, X_2 ... X_n
+
+    :param filename: of the CSV file
+
+    :return: y, X_scaled
+    """
+
+    print('loading data from: {}'.format(filename))
     df = pandas.read_csv(filename)
-    label=df['label']
-    features=df.iloc[:, 4:19]
+
+    y = df['label']
+    X = df.iloc[:, 4:]  # first few columns are ids and the labels
+
+    # feature scaling TODO outside this function?
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-    features_scaled = min_max_scaler.fit_transform(features)
-    #features_scaled = preprocessing.scale(features.values)
-    return label.values, features_scaled
+    X_scaled = min_max_scaler.fit_transform(X)
+
+    return y.values, X_scaled
 
 
-def split_train_data(y):  # TODO control with config, move to runner / add value with real df
-    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['number_of_folds'],
-                                                      test_size=voya_config.config['fraction_of_test_events'],
+def split_train_data(y):  # TODO is there a good reason for a wrapper that just fills in the config?
+    """ Splits the data into traing and test sets using the values given in the config file.
+
+    :param y: labels
+    :return: list of size <num_split_iterations> eahc with (train_index, test_index)
+    """
+    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['num_split_iterations'],
+                                                      test_size=voya_config.config['test_size'],
                                                       random_state=voya_config.config['random_seed'])
     return sss
