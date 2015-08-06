@@ -47,20 +47,20 @@ for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
         clf_name_split_num = '{} {}'.format(clf_name, split_num)
         print("Running {} sample {}".format(clf_name_split_num, split_num))
+
+        results_dict = {'clf_name': clf_name_split_num}  # a row of the (eventual) results table
         
         clf = GridSearchCV(estimator=clf_notoptimized, 
                            param_grid=voya_config.classifiers_gridparameters[clf_name])
-        print("mean auc score from cross validation:", np.mean(cross_val_score(clf.fit(X_train, y_train).best_estimator_, 
-                                                    X_train, y=y_train, scoring='roc_auc'))) 
- 
-        clf.fit(X_train, y_train).best_estimator_
+
+        # TODO this is a benchmark but doesnt fit into the current logic
+        auc_scores = cross_val_score(clf.fit(X_train, y_train).best_estimator_, X_train, y=y_train, scoring='roc_auc')
+        mean_auc_score = np.mean(auc_scores)
+        results_dict['Mean AUC Score'] = mean_auc_score
         
         y_pred = clf.predict_proba(X_test)[:, 1]
-        
-        #print("clf best score",clf.best_score_)       
-        #print("best estimator", clf.best_estimator_)
 
-        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
+        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path, results_dict)
 
         results_table_rows.append(bench_results)
 
