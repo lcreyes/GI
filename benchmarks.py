@@ -6,7 +6,7 @@ import os.path
 import matplotlib.pyplot as plt
 import sklearn.metrics
 
-import plotter
+import voya_plotter
 
 
 def all_benchmarks(prob_pos, labels, clf_name, out_path):
@@ -18,10 +18,11 @@ def all_benchmarks(prob_pos, labels, clf_name, out_path):
     :param out_path: output plot/file save path
     :return:
     """
-    plotter.reliability_curve(prob_pos, labels, clf_name)
+
+    voya_plotter.reliability_curve(prob_pos, labels, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)))
 
-    plotter.confusion_matrix(prob_pos, labels, clf_name)
+    voya_plotter.confusion_matrix(prob_pos, labels, clf_name)
     plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)))
 
     auc_score = sklearn.metrics.roc_auc_score(labels, prob_pos)

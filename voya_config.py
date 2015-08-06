@@ -14,7 +14,7 @@ config = {
     "random_seed": 49,
 }
 
-# Setup BernoulliRBM Neural net with logistic classifier TODO move to custom classifiers module?
+# Setup BernoulliRBM Neural net with logistic classifiers
 logistic = sklearn.linear_model.LogisticRegression()
 rbm = sklearn.neural_network.BernoulliRBM(random_state=0, verbose=True)
 rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])

@@ -1,16 +1,23 @@
+""" We use the Sklean syntax of
+
+clf = classifier
+X =
+y =
+"""
+
 import os
 
-import config
+import voya_config
 import datasetup
 import benchmarks
 
-out_path = config.config['out_path']
+out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
     os.makedirs(out_path)
 
 # TODO turn df into train_labels, features and test
 
-labels, features = datasetup.load_data(config.config['data_file'])
+labels, features = datasetup.load_data(voya_config.config['data_file'])
 
 stratified_shuffled_data = datasetup.split_train_data(labels)
 
@@ -22,7 +29,7 @@ for i, (train_index, test_index) in enumerate(stratified_shuffled_data):
     test_features = features[test_index]
     test_labels = labels[test_index]
 
-    for clf_name, clf in config.classifiers.iteritems():
+    for clf_name, clf in voya_config.classifiers.iteritems():
         clf_i_name = '{} {}'.format(clf_name, i)
         print("Running {} sample {}".format(clf_i_name, i))
         clf.fit(train_features, train_labels)
