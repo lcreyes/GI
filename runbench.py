@@ -50,14 +50,14 @@ for split_num, (X_train, y_train, X_test, y_test) in enumerate(data_splits):
 
         results_dict = {'clf_name': clf_name_split_num}  # a row of the (eventual) results table
         
-        clf = GridSearchCV(estimator=clf_notoptimized, 
-                           param_grid=voya_config.classifiers_gridparameters[clf_name])
+        clf = GridSearchCV(estimator=clf_notoptimized, param_grid=voya_config.classifiers_gridparameters[clf_name],
+                           cv=10)
 
         # TODO this is a benchmark but doesnt fit into the current logic
         auc_scores = cross_val_score(clf.fit(X_train, y_train).best_estimator_, X_train, y=y_train, scoring='roc_auc')
         mean_auc_score = np.mean(auc_scores)
         results_dict['Mean AUC Score'] = mean_auc_score
-        
+
         y_pred = clf.predict_proba(X_test)[:, 1]
 
         bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path, results_dict)
