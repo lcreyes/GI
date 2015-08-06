@@ -17,13 +17,25 @@ rfc_parameters = {"max_depth": [3, None],
               "bootstrap": [True, False],
               "criterion": ["gini", "entropy"]}
 
-svc_parameters = [{'kernel': ['linear'], 'C': [100, 1000]}]
+svc_parameters = [{'kernel': ['linear'], 'C': [1,10,100]}]
 
 
-def gridsearch(clf_name) :
+
+
+def gridsearch(clf_name,clf_notoptimized) :
     global lr_parameters
     global rfc_parameters
+    global svc_parameters
 
-    clf_optimized = GridSearchCV(estimator=clf_name, param_grid=svc_parameters)
+    print("clf_name",clf_name) 
+    if (clf_name == "lr"):
+        parameters=lr_parameters
+    if (clf_name == "rfc"):
+        parameters=rfc_parameters
+    if (clf_name == "svc"):
+        parameters=svc_parameters
+
+
+    clf_optimized = GridSearchCV(estimator=clf_notoptimized, param_grid=parameters)
     return clf_optimized
 
