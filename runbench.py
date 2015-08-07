@@ -46,7 +46,7 @@ skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.conf
 for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     print("Running {}".format(clf_name))
     clf = GridSearchCV(estimator=clf_notoptimized, param_grid=voya_config.classifiers_gridparameters[clf_name],
-                       cv=skf)
+                       cv=skf, scoring='roc_auc')
     clf_optimized = clf.fit(X_train, y_train).best_estimator_
     clf_optimalParameters = clf.best_params_
     print (clf_name, clf_optimalParameters)
