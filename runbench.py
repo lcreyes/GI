@@ -27,7 +27,6 @@ import os
 import voya_config
 import datasetup
 import benchmarks
-import numpy as np
 from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
 
@@ -37,10 +36,13 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
+y_train = y_test = y
+X_train = X_test = X
+
 # TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
-skf = sklearn.cross_validation.StratifiedKFold(y, n_folds=voya_config.config['num_folds'])
+skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
 
 for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     print("Running {}".format(clf_name))
@@ -48,26 +50,12 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
                        cv=skf)
 
     # TODO should we give it the whole set or not?
-    clf_optimized = clf.fit(X, y).best_estimator_
+    clf_optimized = clf.fit(X_train, y_train).best_estimator_
+    y_pred = clf_optimized.predict_proba(X_test)[:, 1]
 
-    # Train each fold
-    for split_num, (train_index, test_index) in enumerate(skf):
-
-        clf_name_split_num = '{} {}'.format(clf_name, split_num)
-        print("Running {} sample {}".format(clf_name_split_num, split_num))
-
-        X_train = X[train_index]
-        X_test = X[test_index]
-
-        y_train = y[train_index].astype(int)
-        y_test = y[test_index].astype(int)
-
-        clf_optimized.fit(X_train, y_train)
-
-        y_pred = clf.predict_proba(X_test)[:, 1]
-
-        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name_split_num, out_path)
-        results_table_rows.append(bench_results)
+    print("Benchmarking {}".format(clf_name))
+    bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
+    results_table_rows.append(bench_results)
 
 
 results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
