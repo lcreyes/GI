@@ -37,6 +37,13 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
+sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=voya_config.config['num_split_iterations'],
+        test_size=voya_config.config['test_size'], random_state=voya_config.config['random_seed'])
+
+for train_index, test_index in sss:
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+
 # TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
