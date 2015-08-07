@@ -21,9 +21,10 @@ rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logis
 
 classifiers = {
     'lr': sklearn.linear_model.LogisticRegression(),
-    # 'rfc': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
+    'rfc': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
     # 'svc': sklearn.svm.SVC(C=1.0, probability=True),
-    # 'rbm_logistic': rbm_logistic
+    # 'rbm_logistic': rbm_logistic,
+    'gbc': sklearn.ensemble.GradientBoostingClassifier(random_state=config['random_seed']),
 }
 
 classifiers_gridparameters = {
@@ -32,4 +33,5 @@ classifiers_gridparameters = {
             "min_samples_leaf": [1, 3, 10], "bootstrap": [True, False], "criterion": ["gini", "entropy"]},
     'svc': [{'kernel': ['linear'], 'C': [1, 10, 100]}],
     # 'rbm_logistic' : {'steps' : [('rbm', rbm), ('logistic', logistic)]}
+    'gbc': {"n_estimators": [10, 100, 1000], 'learning_rate': [0.2, 0.5, 0.7, 1.0], 'max_depth': [1, 3, 10],}
 }
