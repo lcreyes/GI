@@ -48,6 +48,9 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     clf = GridSearchCV(estimator=clf_notoptimized, param_grid=voya_config.classifiers_gridparameters[clf_name],
                        cv=skf)
 
+    clf_optimalParameters = clf.best_params_
+    print (clf_name, clf_optimalParameters)
+
     # TODO should we give it the whole set or not?
     clf_optimized = clf.fit(X_train, y_train).best_estimator_
     y_pred = clf_optimized.predict_proba(X_test)[:, 1]
