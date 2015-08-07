@@ -36,8 +36,7 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
-y_train = y_test = y
-X_train = X_test = X
+X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X)
 
 # TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value

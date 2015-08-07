@@ -30,3 +30,21 @@ def load_data(filename):
     X_scaled = min_max_scaler.fit_transform(X)
 
     return y.values, X_scaled
+
+
+def get_stratifed_data(y, X):
+    """ Splits the data into a training set and test set as defined in config
+    :param y:
+    :param X:
+    :return:
+    """
+    # TODO is config best defined here or past as arugments to the function?
+    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=1, test_size=voya_config.config['test_size'],
+                                                      random_state=voya_config.config['random_seed'])
+
+    train_index, test_index = next(iter(sss))
+
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+
+    return X_train, y_train, X_test, y_test
