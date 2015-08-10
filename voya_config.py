@@ -7,7 +7,7 @@ import sklearn.pipeline
 import sklearn.ensemble
 
 config = {
-    "data_file": "test_data.csv",
+    "data_file": "data/test_data_formatted.csv",
     "out_path": "output",
     "num_folds": 2,
     "test_size": 0.2,

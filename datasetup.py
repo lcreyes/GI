@@ -23,7 +23,7 @@ def load_data(filename):
     df = pandas.read_csv(filename)
 
     y = df['label']
-    X = df.iloc[:, 4:]  # first few columns are ids and the labels
+    X = df.iloc[:, 2:]  # first few columns are ids and the labels
 
     # feature scaling TODO outside this function?
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
