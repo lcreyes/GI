@@ -19,18 +19,18 @@ rbm = sklearn.neural_network.BernoulliRBM(verbose=True)
 rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
 
 classifiers = {
-    'lr': sklearn.linear_model.LogisticRegression(),
-    'rfc': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
-    'svc': sklearn.svm.SVC(C=1.0, probability=True),
+    'Logistic Regression': sklearn.linear_model.LogisticRegression(),
+    'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
+    'SVC': sklearn.svm.SVC(C=1.0, probability=True),
     # 'rbm_logistic': rbm_logistic,
-    'gbc': sklearn.ensemble.GradientBoostingClassifier(),
+    'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(),
 }
 
 classifiers_gridparameters = {
-    'lr': {'C': [1, 10, 100, 1000], 'penalty': ["l1", "l2"], 'class_weight': [None, "auto"]},
-    'rfc': {"max_depth": [3, None], "max_features": [1, 3, 10], "min_samples_split": [1, 3, 10],
+    'Logistic Regression': {'C': [0.2, 0.4, 0.6, 0.8, 1.0], 'penalty': ["l1", "l2"], 'class_weight': [None, "auto"]},
+    'Random Forests': {"max_depth": [3, None], "max_features": [1, 3, 10], "min_samples_split": [1, 3, 10],
             "min_samples_leaf": [1, 3, 10], "bootstrap": [True, False], "criterion": ["gini", "entropy"]},
-    'svc': [{'kernel': ['linear'], 'C': [1, 10, 100]}],
+    'SVC': [{'kernel': ['linear'], 'C': [0.2, 0.4, 0.6, 0.8, 1.0]}],
     # 'rbm_logistic' : {'steps' : [('rbm', rbm), ('logistic', logistic)]},
-    'gbc': {"n_estimators": [10, 100, 1000], 'learning_rate': [0.2, 0.5, 0.7, 1.0], 'max_depth': [1, 3, 10],}
+    'Gradient Boosting': {"n_estimators": [10, 50, 100], 'learning_rate': [0.1, 0.2, 0.3, 0.5], 'max_depth': [1, 2, 5],}
 }

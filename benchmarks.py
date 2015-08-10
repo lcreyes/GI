@@ -51,5 +51,6 @@ def results_dict_to_data_frame(results_table_rows):
     """
 
     results_table = pandas.DataFrame(results_table_rows).set_index('clf_name')
+    results_table.sort_index(inplace=True)
 
     return results_table
