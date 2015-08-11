@@ -4,7 +4,6 @@
 import pandas
 import sklearn.cross_validation
 import sklearn.preprocessing
-import voya_config
 
 
 def load_data(filename):
@@ -32,14 +31,13 @@ def load_data(filename):
     return y.values, X_scaled
 
 
-def get_stratifed_data(y, X):
+def get_stratifed_data(y, X, test_size):
     """ Splits the data into a training set and test set as defined in config
     :param y:
     :param X:
     :return:
     """
-    # TODO (ryan) is the config best defined here or past as arugments to the function?
-    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=1, test_size=voya_config.config['test_size'])
+    sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=1, test_size=test_size)
 
     train_index, test_index = next(iter(sss))
 
