@@ -38,6 +38,7 @@ y, X = datasetup.load_data(voya_config.config['data_file'])
 
 X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X)
 
+# TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
 skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
@@ -46,17 +47,22 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     print("Running {}".format(clf_name))
     param_grid = voya_config.classifiers_gridparameters[clf_name]
 
-    if param_grid is None:
+    print(param_grid)
+
+    if not param_grid:
+        #if param_grid is None:
         print 'Skipping grid search for {}'.format(clf_name)
-        clf = clf_notoptimized
-        clf_optimized = clf.fit(X_train, y_train)
+        print("clf_notoptimized",clf_notoptimized)
+
+        clf_notoptimized.fit(X_train, y_train)
+        y_pred = clf_notoptimized.predict_proba(X_test)        
+
     else:
         clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
         clf_optimized = clf.fit(X_train, y_train).best_estimator_
         clf_optimalParameters = clf.best_params_
         print (clf_name, clf_optimalParameters)
-    
-    y_pred = clf_optimized.predict_proba(X_test)[:, 1]
+        y_pred = clf_optimized.predict_proba(X_test)[:, 1]
 
     print("Benchmarking {}".format(clf_name))
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
