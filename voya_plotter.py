@@ -19,7 +19,7 @@ def reliability_curve(y_test, y_pred, clf_name):
     ax1.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
 
     fraction_of_positives, mean_predicted_value = \
-        sklearn.calibration.calibration_curve(y_test, y_pred, n_bins=5)
+        sklearn.calibration.calibration_curve(y_test, y_pred, n_bins=5, normalize=True)
 
     ax1.set_title('Calibration plots  (reliability curve)')
     ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
