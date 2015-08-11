@@ -25,7 +25,7 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
 
     results_dict = {'clf_name': clf_name}  # a row of the (eventual) results table
 
-    # TODO think about structure here, have a common interface and move the params to config like classifiers?
+    # TODO (ryan) think about structure here, have a common interface and move the params to config like classifiers?
     voya_plotter.reliability_curve(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches = 'tight')
 

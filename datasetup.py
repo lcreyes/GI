@@ -38,7 +38,7 @@ def get_stratifed_data(y, X):
     :param X:
     :return:
     """
-    # TODO is config best defined here or past as arugments to the function?
+    # TODO (ryan) is the config best defined here or past as arugments to the function?
     sss = sklearn.cross_validation.StratifiedShuffleSplit(y, n_iter=1, test_size=voya_config.config['test_size'])
 
     train_index, test_index = next(iter(sss))

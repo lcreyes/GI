@@ -38,7 +38,6 @@ y, X = datasetup.load_data(voya_config.config['data_file'])
 
 X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X)
 
-# TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
 skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
@@ -56,8 +55,6 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
         clf_optimized = clf.fit(X_train, y_train).best_estimator_
         clf_optimalParameters = clf.best_params_
         print (clf_name, clf_optimalParameters)
-
-    # TODO should we give it the whole set or not?
     
     y_pred = clf_optimized.predict_proba(X_test)[:, 1]
 
