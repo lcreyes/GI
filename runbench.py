@@ -1,9 +1,12 @@
 """ The main runner script for the Clairvoya benchmark code
 
-Config should be specified in a python config file (see voya_config_example.py)
+Config should be specified in a python config file (see voya_config_example.py) and ideally stored in config i.e
+    config/config_name.py
+This would then be ran as
+    runbench.py config.config_name
 
 Usage:
-  runbench.py <config>
+  runbench.py [<config>]
 
 Notes:
     Currently the config files are stored in python, these aren't very portable and are not the best end solution
@@ -44,9 +47,15 @@ if not __name__ == '__main__':
     exit('Script is not importable')
 
 arguments = docopt.docopt(__doc__)
+
+try:
+    config_module = arguments['<config>']
+except KeyError:
+    config_module = 'voya_config_example'
+
 # This may not be entirely sensible, but is quick for prototyping
-voya_config = importlib.import_module(arguments['<config>'])
-print 'config file: {}.py'.format(arguments['<config>'])
+voya_config = importlib.import_module(config_module)
+print 'config file: {}.py'.format(config_module)
 
 out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
@@ -56,6 +65,7 @@ y, X = datasetup.load_data(voya_config.config['data_file'])
 
 X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
 
+# TODO loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
 skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
@@ -64,17 +74,22 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     print("Running {}".format(clf_name))
     param_grid = voya_config.classifiers_gridparameters[clf_name]
 
-    if param_grid is None:
+    print(param_grid)
+
+    if not param_grid:
+        #if param_grid is None:
         print 'Skipping grid search for {}'.format(clf_name)
-        clf = clf_notoptimized
-        clf_optimized = clf.fit(X_train, y_train)
+        print("clf_notoptimized",clf_notoptimized)
+
+        clf_notoptimized.fit(X_train, y_train)
+        y_pred = clf_notoptimized.predict_proba(X_test)        
+
     else:
         clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
         clf_optimized = clf.fit(X_train, y_train).best_estimator_
         clf_optimalParameters = clf.best_params_
         print (clf_name, clf_optimalParameters)
-    
-    y_pred = clf_optimized.predict_proba(X_test)[:, 1]
+        y_pred = clf_optimized.predict_proba(X_test)[:, 1]
 
     print("Benchmarking {}".format(clf_name))
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
