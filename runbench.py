@@ -48,9 +48,8 @@ if not __name__ == '__main__':
 
 arguments = docopt.docopt(__doc__)
 
-try:
-    config_module = arguments['<config>']
-except KeyError:
+config_module = arguments['<config>']
+if config_module is None:  # use default
     config_module = 'voya_config_example'
 
 # This may not be entirely sensible, but is quick for prototyping
