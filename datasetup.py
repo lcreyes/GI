@@ -12,7 +12,7 @@ def load_data(filename):
 
     CSV file is expect to have the first row as headers, in the format
 
-        id, id, added__orig_index, cid, label, X_1, X_2 ... X_n
+        id, label, X_1, X_2 ... X_n
 
     :param filename: of the CSV file
 
