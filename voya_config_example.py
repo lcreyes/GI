@@ -9,20 +9,19 @@ import sklearn.linear_model
 import sklearn.neural_network
 import sklearn.pipeline
 import sklearn.ensemble
-from puLearning.puAdapter import PUAdapter
 
 config = {
     "data_file": "data/test_data_formatted.csv",
     "out_path": "output",
     "num_folds": 2,
     "test_size": 0.2,
+    "pu_learning": False,
 }
 
 # Setup BernoulliRBM Neural net with logistic classifiers
 logistic = sklearn.linear_model.LogisticRegression()
 rbm = sklearn.neural_network.BernoulliRBM(verbose=True)
 rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
-estimator = sklearn.svm.SVC(C=10,kernel='rbf',gamma=0.4,probability=True)
 
 classifiers = {
     'Logistic Regression': sklearn.linear_model.LogisticRegression(),
@@ -30,7 +29,6 @@ classifiers = {
     #'SVC': sklearn.svm.SVC(C=1.0, probability=True),
     # 'rbm_logistic': rbm_logistic,
     'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(),
-    # 'puestimator' : PUAdapter(estimator,hold_out_ratio=0.2)
 }
 
 classifiers_gridparameters = {
@@ -39,5 +37,4 @@ classifiers_gridparameters = {
     'SVC': [{'kernel': ['linear'], 'C': [0.2, 0.4, 0.6, 0.8, 1.0]}],
     'rbm_logistic' : {'steps' : [('rbm', rbm), ('logistic', logistic)]},
     'Gradient Boosting': {"n_estimators": [10, 50, 100], 'learning_rate': [0.1, 0.2, 0.3, 0.5], 'max_depth': [1, 2, 5],},
-    'puestimator' : {}
 }
