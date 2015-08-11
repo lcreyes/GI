@@ -1,34 +1,52 @@
 """ The main runner script for the Clairvoya benchmark code
 
-[desc]
+Config should be specified in a python config file (see voya_config_example.py)
 
-## Syntax
+Usage:
+  runbench.py <config>
 
-We use the sklearn syntax of
+Notes:
+    Currently the config files are stored in python, these aren't very portable and are not the best end solution
+    but are much faster for prototyping new classifiers. If these become cumbersome we should rethink as they arent a
+    great solution.
 
-clf = classifier
-clf_name = classifier name
-X = features from dataset
-y = labels from dataset
-y_pred = predicted labels on test set
+Syntax:
+    We use the sklearn syntax of
 
-X and y are further defined
+    clf = classifier
+    clf_name = classifier name
+    X = features from dataset
+    y = labels from dataset
+    y_pred = predicted labels on test set
 
-    X_<test/train>_<split_num>
+    X and y are further defined
 
-We split the dataset into a test and training set and we do
-this multiple times, each time has a different split number
+        X_<test/train>_<split_num>
 
-eg X_train_0 and y_test_4
+    We split the dataset into a test and training set and we do
+    this multiple times, each time has a different split number
+
+    eg X_train_0 and y_test_4
 """
 
 import os
+import importlib
 
-import voya_config
-import datasetup
-import benchmarks
 from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
+
+import datasetup
+import benchmarks
+import docopt
+
+
+if not __name__ == '__main__':
+    exit('Script is not importable')
+
+arguments = docopt.docopt(__doc__)
+# This may not be entirely sensible, but is quick for prototyping
+voya_config = importlib.import_module(arguments['<config>'])
+print 'config file: {}.py'.format(arguments['<config>'])
 
 out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
@@ -36,7 +54,7 @@ if not os.path.isdir(out_path):
 
 y, X = datasetup.load_data(voya_config.config['data_file'])
 
-X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X)
+X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
 
 results_table_rows = []  # each row is a dict with column_name: value
 

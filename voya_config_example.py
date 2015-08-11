@@ -1,4 +1,8 @@
-""" Quick config file
+""" Config file Example
+
+This is an example config file which you SHOULDNT CHANGE EXCEPT TO WORK WITH NEW FEATURES. You should test this config
+file works before committing and fix it if not. For general use, copy it elsewhere i.e. config/config_1.py which
+isn't version controlled.
 """
 
 import sklearn.linear_model
@@ -7,7 +11,7 @@ import sklearn.pipeline
 import sklearn.ensemble
 
 config = {
-    "data_file": "data/test_Gaussians_formatted.csv",
+    "data_file": "data/test_data_formatted.csv",
     "out_path": "output",
     "num_folds": 2,
     "test_size": 0.2,
@@ -20,9 +24,9 @@ rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logis
 
 classifiers = {
     'Logistic Regression': sklearn.linear_model.LogisticRegression(),
-    'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
-    'SVC': sklearn.svm.SVC(C=1.0, probability=True),
-    'BernoulliRBM Logistic': rbm_logistic,
+    # 'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
+    # 'SVC': sklearn.svm.SVC(C=1.0, probability=True),
+    # 'BernoulliRBM Logistic': rbm_logistic,
     'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(),
 
 }
