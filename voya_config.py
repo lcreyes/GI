@@ -28,8 +28,8 @@ classifiers = {
 
 classifiers_gridparameters = {
     'Logistic Regression': {'C': [0.2, 0.4, 0.6, 0.8, 1.0], 'penalty': ["l1", "l2"], 'class_weight': [None, "auto"]},
-    'Random Forests': {"max_depth": [3, None], "max_features": [1, 3, 10], "min_samples_split": [1, 3, 10],
-            "min_samples_leaf": [1, 3, 10], "bootstrap": [True, False], "criterion": ["gini", "entropy"]},
+    'Random Forests': {"max_depth": [3, None], "max_features": [1, 3, None, 'auto'], "min_samples_split": [1, 2, 3],
+            "min_samples_leaf": [1, 2, 3, 4], "bootstrap": [True, False], "criterion": ["gini", "entropy"]},
     # 'SVC': [{'kernel': ['linear'], 'C': [0.2, 0.4, 0.6, 0.8, 1.0]}],
     'SVC': None,
     # 'rbm_logistic' : {'steps' : [('rbm', rbm), ('logistic', logistic)]},
