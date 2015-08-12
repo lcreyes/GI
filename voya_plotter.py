@@ -106,7 +106,6 @@ def roc_curve(y_test, y_pred, clf_name):
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
-    print 'ok!!'
     # Compute ROC curve and ROC area for each class
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
     roc_auc = sklearn.metrics.auc(fpr, tpr)
