@@ -72,6 +72,8 @@ if voya_config.config["pu_learning"]:  # input of positive, negative and unlabel
     y_train, X_train = datasetup.split_df_labels_features(df_train)
 
     # TODO (ryan) scale features (all together?)
+    # TODO (Luis) shouldn't we scale before splitting the data into train/test?
+    #             it seems to me that we are using different normalizations for each set
     X_train = datasetup.scale_features(X_train)
     X_test = datasetup.scale_features(X_test)
 

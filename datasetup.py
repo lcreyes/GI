@@ -66,8 +66,8 @@ def split_test_train_df_pu(df, test_size):
     assert set(df_test['label'].unique()) == set((1, -1))
 
     # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
-    df_test[df_test['label'] == -1] = 0
-
+    df_test.loc[df_test.label==-1,'label']=0
+    
     assert set(df_test['label'].unique()) == set((1, 0))
 
     return df_test, df_train
