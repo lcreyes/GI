@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
+import sklearn.metrics
 import numpy
 import seaborn
 
@@ -94,3 +95,35 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
             ax2.text(i,j,"%4.2f" %cm_normalized[i,j], ha='center', size=14, bbox=cm_bbox)
 
     plt.colorbar(confMatrix2, ax=ax2)
+
+
+def roc_curve(y_test, y_pred, clf_name):
+    """
+    Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
+        Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
+        License: BSD Style.
+    """
+    print 'ok!!'
+    # Compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
+    roc_auc = sklearn.metrics.auc(fpr, tpr)
+
+    # Compute micro-average ROC curve and ROC area
+    #fpr["micro"], tpr["micro"], _ = sklearn.metrics.roc_curve(y_test.ravel(), y_pred.ravel())
+    #roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    # Plot of a ROC curve for a specific class
+    seaborn.set_style("white")
+    plt.figure(figsize=(7, 7))
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
+    return roc_auc

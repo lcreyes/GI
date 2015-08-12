@@ -27,12 +27,15 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
 
     # TODO (ryan) think about structure here, have a common interface and move the params to config like classifiers?
     voya_plotter.reliability_curve(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches = 'tight')
+    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
     voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches = 'tight')
+    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
-    auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
+    auc_score = voya_plotter.roc_curve(y_test, y_pred, clf_name)
+    plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+
+    #auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
     results_dict['auc_score'] = auc_score
 
     plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
