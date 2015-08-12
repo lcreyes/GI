@@ -108,15 +108,8 @@ def roc_curve(y_test, y_pred, clf_name):
     """
     print 'ok!!'
     # Compute ROC curve and ROC area for each class
-    fpr = dict()  # TODO (ryan) theese lines are overwitten by roc_curve, still needed?
-    tpr = dict()
-    roc_auc = dict()
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
     roc_auc = sklearn.metrics.auc(fpr, tpr)
-
-    # Compute micro-average ROC curve and ROC area
-    #fpr["micro"], tpr["micro"], _ = sklearn.metrics.roc_curve(y_test.ravel(), y_pred.ravel())
-    #roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
     # Plot of a ROC curve for a specific class
     seaborn.set_style("whitegrid")
