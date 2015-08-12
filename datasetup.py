@@ -21,14 +21,56 @@ def load_data(filename):
     print('loading data from: {}'.format(filename))
     df = pandas.read_csv(filename)
 
+    return df
+
+
+def split_df_labels_features(df):
+    """ splits a dataframe into y and X provided it conforms to the required input colums of id, labels, features...
+    """
+
     y = df['label']
     X = df.iloc[:, 2:]  # first few columns are ids and the labels
 
-    # feature scaling TODO (ryan) outside this function?
+    return y.values, X
+
+
+def scale_features(X):
+    """ Scales X to be between 0 and 1
+    """
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     X_scaled = min_max_scaler.fit_transform(X)
 
-    return y.values, X_scaled
+    return X_scaled
+
+
+def split_test_train_df_pu(df, test_size):
+    """ Splits the data frame containing P, N and U labels into a training and testing dataframes.
+
+    testing =  testsize*P, N
+    training = (1-testsize)*P, U
+
+    In the process negative labels (-1) are converted to 0 in order to be compare the sets
+    """
+    positives = df[df['label'] == 1]
+    negatives = df[df['label'] == -1]
+    unlabeled = df[df['label'] == 0]
+
+    num_positives_test = int(len(positives.index) * test_size)
+    positives_test = positives[:num_positives_test]
+    positives_train = positives[num_positives_test:]
+
+    df_train = positives_train.append(unlabeled, ignore_index=True)
+    df_test = positives_test.append(negatives, ignore_index=True)
+
+    assert set(df_train['label'].unique()) == set((1, 0))
+    assert set(df_test['label'].unique()) == set((1, -1))
+
+    # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
+    df_test[df_test['label'] == -1] = 0
+
+    assert set(df_test['label'].unique()) == set((1, 0))
+
+    return df_test, df_train
 
 
 def get_stratifed_data(y, X, test_size):

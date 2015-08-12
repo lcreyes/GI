@@ -36,7 +36,7 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     auc_score = voya_plotter.roc_curve(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
-    #auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
+    # auc_score = sklearn.metrics.roc_auc_score(y_test, y_pred)
     results_dict['auc_score'] = auc_score
 
     plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise

@@ -63,11 +63,25 @@ out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):
     os.makedirs(out_path)
 
-y, X = datasetup.load_data(voya_config.config['data_file'])
+df = datasetup.load_data(voya_config.config['data_file'])
 
-X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
+if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
+    print("PU Learning Benchmark")
+    df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'])
+    y_test, X_test = datasetup.split_df_labels_features(df_test)
+    y_train, X_train = datasetup.split_df_labels_features(df_train)
 
-# TODO loop over split num only needed for cross-validation?
+    # TODO (ryan) scale features (all together?)
+    X_train = datasetup.scale_features(X_train)
+    X_test = datasetup.scale_features(X_test)
+
+else:  # input of positive and negative (i.e 1, 0)
+    y, X_unscaled = datasetup.split_df_labels_features(df)
+    X = datasetup.scale_features(X_unscaled)
+
+    X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
+
+# TODO (ryan) loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
 skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
