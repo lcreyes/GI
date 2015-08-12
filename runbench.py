@@ -4,6 +4,7 @@ Config should be specified in a python config file (see voya_config_example.py) 
     config/config_name.py
 This would then be ran as
     runbench.py config.config_name
+    runbench.py config/config_name.py
 
 Usage:
   runbench.py [<config>]
@@ -48,13 +49,15 @@ if not __name__ == '__main__':
 
 arguments = docopt.docopt(__doc__)
 
-config_module = arguments['<config>']
-if config_module is None:  # use default
-    config_module = 'voya_config_example'
+config_module_name = arguments['<config>']
+if config_module_name is None:  # use default
+    config_module_name = 'voya_config_example'
+else:
+    config_module_name = datasetup.parse_config_module_name(config_module_name)
 
-# This may not be entirely sensible, but is quick for prototyping
-voya_config = importlib.import_module(config_module)
-print 'config file: {}.py'.format(config_module)
+# This config loading as a module may not be entirely sensible, but is very quick for prototyping
+voya_config = importlib.import_module(config_module_name)
+print 'config file: {}.py'.format(config_module_name)
 
 out_path = voya_config.config['out_path']
 if not os.path.isdir(out_path):

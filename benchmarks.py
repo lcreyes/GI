@@ -32,6 +32,7 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
+    # TODO (ryan) auc score should probably be computed here and passed to roc_curve, expecailly if we k-fold it in future
     auc_score = voya_plotter.roc_curve(y_test, y_pred, clf_name)
     plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 

@@ -6,6 +6,9 @@ import numpy
 import seaborn
 
 
+# TODO (ryan) plot titles should include classifer name (or elsewhere on plot)
+
+
 def reliability_curve(y_test, y_pred, clf_name):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
@@ -105,7 +108,7 @@ def roc_curve(y_test, y_pred, clf_name):
     """
     print 'ok!!'
     # Compute ROC curve and ROC area for each class
-    fpr = dict()
+    fpr = dict()  # TODO (ryan) theese lines are overwitten by roc_curve, still needed?
     tpr = dict()
     roc_auc = dict()
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)

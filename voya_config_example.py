@@ -12,19 +12,23 @@ import sklearn.neural_network
 import sklearn.pipeline
 import sklearn.ensemble
 
+#### Basic configuration
 config = {
-    "data_file": "data/test_data_formatted.csv",
-    "out_path": "output",
-    "num_folds": 2,
-    "test_size": 0.2,
-    "pu_learning": False,
+    "data_file": "data/test_data_formatted.csv",  # input data
+    "out_path": "output",  # output directory (plots/tables)
+    "num_folds": 2,   # number of folds for K-Fold
+    "test_size": 0.2,  # fraction of sample used as tex
+    "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
 }
+
+#### Any custom code to combine new classifiers goes here
 
 # Setup BernoulliRBM Neural net with logistic classifiers
 logistic = sklearn.linear_model.LogisticRegression()
 rbm = sklearn.neural_network.BernoulliRBM(verbose=True)
 rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
 
+#### Specifiy SKLearn style classifiers here
 classifiers = {
     'Logistic Regression': sklearn.linear_model.LogisticRegression(),
     'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
@@ -34,6 +38,8 @@ classifiers = {
     #                                                                  max_depth=2),
 }
 
+#### Specifiy arguments and parameters for grid search here, keys must match `classifiers` use None to use defaults
+# given in initialisation
 classifiers_gridparameters = {
     'Logistic Regression': {'C': [0.2, 0.4, 0.6, 0.8, 1.0], 'penalty': ["l1", "l2"], 'class_weight': [None, "auto"]},
     'Random Forests': None,  # dont grid search

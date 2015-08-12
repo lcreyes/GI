@@ -1,21 +1,20 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
 """
-Created on Dec 21, 2012
 
-@author: Alexandre
 """
 import numpy as np
 
-class PUAdapter(object):
+
+class PUAdapter(object):  # TODO (ryan) rename to something more descriptive
     """
     Adapts any probabilistic binary classifier to positive-unlabled learning using the PosOnly method proposed by
     Elkan and Noto:
 
     Elkan, Charles, and Keith Noto. \"Learning classifiers from only positive and unlabeled data.\"
     Proceeding of the 14th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2008.
-    """
 
+    Adapted from code by Alexandre Drouin from https://github.com/aldro61/pu-learning which is
+    Copyright 2013 Alexandre Drouin All rights reserved (see https://github.com/aldro61/pu-learning/blob/master/LICENSE.md)
+    """
 
     def __init__(self, estimator, hold_out_ratio=0.1, precomputed_kernel=False):
         """
@@ -43,7 +42,6 @@ class PUAdapter(object):
     def __str__(self):
         return 'Estimator:' + str(self.estimator) + '\n' + 'p(s=1|y=1,x) ~= ' + str(self.c) + '\n' + \
             'Fitted: ' + str(self.estimator_fitted)
-    
     
     def __fit_precomputed_kernel(self, X, y):
         """
@@ -78,15 +76,14 @@ class PUAdapter(object):
         
         try:
             hold_out_predictions = hold_out_predictions[:,1]
-        except:
+        except:  # TODO (ryan) shouldnt use catch-all excepts, what is it trying to catch and why?
             pass
         
         c = np.mean(hold_out_predictions)
         self.c = c
         
         self.estimator_fitted = True
-        
-        
+
     def __fit_no_precomputed_kernel(self, X, y):
         """
         Fits an estimator of p(s=1|x) and estimates the value of p(s=1|y=1,x)
@@ -112,7 +109,7 @@ class PUAdapter(object):
         
         try:
             hold_out_predictions = hold_out_predictions[:,1]
-        except:
+        except:  # TODO (ryan) shouldnt use catch-all excepts, what is it trying to catch and why?
             pass
         
         c = np.mean(hold_out_predictions)

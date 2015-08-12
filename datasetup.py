@@ -24,7 +24,7 @@ def load_data(filename):
     y = df['label']
     X = df.iloc[:, 2:]  # first few columns are ids and the labels
 
-    # feature scaling TODO outside this function?
+    # feature scaling TODO (ryan) outside this function?
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     X_scaled = min_max_scaler.fit_transform(X)
 
@@ -45,3 +45,14 @@ def get_stratifed_data(y, X, test_size):
     y_train, y_test = y[train_index], y[test_index]
 
     return X_train, y_train, X_test, y_test
+
+
+def parse_config_module_name(config_name):
+    """ Parses the config module name given as comanline input to the correct form for a python import. This involves
+    changing '/' to '.' and removing '.py' from file names. Both regularly added by tab completion.
+
+    :param config_name:
+    :return:
+    """
+
+    return config_name.replace('/', '.').replace('.py', '')
