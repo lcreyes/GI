@@ -28,5 +28,5 @@ classifiers = {
 
 classifiers_gridparameters = {
    'puestimator': None,
-   'Bagging SVC': {'n_estimators':[50, 100, 200], 'max_samples':[0.05, 0.1, 0.3, 0.5, 0.9]},
+   'Bagging SVC': {'n_estimators': [50, 100], 'max_samples': [0.1, 0.3]},
 }

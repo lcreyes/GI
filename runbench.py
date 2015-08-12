@@ -73,22 +73,21 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     print("Running {}".format(clf_name))
     param_grid = voya_config.classifiers_gridparameters[clf_name]
 
-    print(param_grid)
-
-    if not param_grid:
-        #if param_grid is None:
+    if param_grid is None:
         print 'Skipping grid search for {}'.format(clf_name)
-        print("clf_notoptimized",clf_notoptimized)
+        print "clf_notoptimized {}".format(clf_notoptimized)
 
-        clf_notoptimized.fit(X_train, y_train)
-        y_pred = clf_notoptimized.predict_proba(X_test)        
+        clf_fitted = clf_notoptimized.fit(X_train, y_train)
 
     else:
         clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
-        clf_optimized = clf.fit(X_train, y_train).best_estimator_
+        clf_fitted = clf.fit(X_train, y_train).best_estimator_
         clf_optimalParameters = clf.best_params_
         print (clf_name, clf_optimalParameters)
-        y_pred = clf_optimized.predict_proba(X_test)[:, 1]
+
+    print 'X = ', clf_fitted
+
+    y_pred = clf_fitted.predict_proba(X_test)[:, 1]
 
     print("Benchmarking {}".format(clf_name))
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)

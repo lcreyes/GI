@@ -119,8 +119,9 @@ class PUAdapter(object):
         self.c = c
 
         self.estimator_fitted = True
-        
-    
+
+        return self.estimator
+
     def predict_proba(self, X):
         """
         Predicts p(y=1|x) using the estimator and the value of p(s=1|y=1) estimated in fit(...)
@@ -134,14 +135,9 @@ class PUAdapter(object):
             raise Exception('The estimator must be fitted before calling predict_proba(...).')
 
         probabilistic_predictions = self.estimator.predict_proba(X)
-        
-        try:
-            probabilistic_predictions = probabilistic_predictions[:,1]
-        except:
-            pass
-        
-        return probabilistic_predictions / self.c
-    
+        probabilistic_predictions[:, 1] /= self.c
+
+        return probabilistic_predictions
     
     def predict(self, X, treshold=0.5):
         """
