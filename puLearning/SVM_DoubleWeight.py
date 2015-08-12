@@ -26,6 +26,8 @@ class SVM_DoubleWeight(object):
         
         self.unlabeled = []
         
+        self.c = 1.0  # c value from paper = p(s=1|y=1)
+        
         self.estimator_fitted = False
         
         self.weights_available = False
@@ -41,10 +43,15 @@ class SVM_DoubleWeight(object):
         positive_probabilities = self.estimator.predict_proba(X[self.positives])[:,1] 
         unlabeled_probabilities = self.estimator.predict_proba(X[self.unlabeled])[:,1]
         
-        # c value from paper = p(s=1|y=1)
-        c = np.mean(positive_probabilities)    
+        # c value from paper = p(s=1|y=1), three possible estimators: e1, e2, e3
         
-        self.unlabeled_weights = (1 - c)/c * unlabeled_probabilities /(1.0 - unlabeled_probabilities)
+        e1 = np.mean(positive_probabilities)  
+        e2 = np.sum(positive_probabilities)/(np.sum(positive_probabilities)+np.sum(unlabeled_probabilities))
+        e3 = np.max(positive_probabilities)
+        
+        self.c = e3 #using e3 since e1 and e3 are low and create problems with the weights
+        
+        self.unlabeled_weights = (1 - self.c)/self.c * unlabeled_probabilities /(1.0 - unlabeled_probabilities)
         
         self.weights_available = True
         
@@ -53,6 +60,9 @@ class SVM_DoubleWeight(object):
         
         self.positives = np.where(y==1)[0]
         self.unlabeled = np.where(y==0)[0]
+        
+        num_positives = np.size(y[self.positives])
+        num_unlabeled = np.size(y[self.unlabeled])
         
         if not self.weights_available:
             self._calculate_weights(X,y)
@@ -63,16 +73,49 @@ class SVM_DoubleWeight(object):
         
         #define new y set assigning "1" labels for positive data, and for unlabeled 
         #dat: use "1"  for the first set, and then "0" labels for second set
-        newy = np.append(y[self.positives], np.ones(y[self.unlabeled].shape))
-        newy = np.append(newy, y[self.unlabeled])
+        newy = np.concatenate((np.ones(num_positives), 
+                               np.ones(num_unlabeled), np.zeros(num_unlabeled)))
                           
                           
-        weights = np.append(y[self.positives], self.unlabeled_weights)
-        weights = np.append(weights, 1.-self.unlabeled_weights)
+        weights = np.concatenate((np.ones(num_positives), 
+                                  self.unlabeled_weights, 1.-self.unlabeled_weights))
         
-
+        
+        self.estimator.C=1.0
+        self.estimator.class_weight = None
+        
         self.estimator.fit(newX,newy,sample_weight=weights)
         
         self.estimator_fitted = True
+        
+        return self.estimator
+        
+        
+    def predict_proba(self, X):
+        """
+        Predicts p(y=1|x) using the estimator and the value of p(s=1|y=1) estimated in fit(...)
+
+        X -- List of feature vectors or a precomputed kernel matrix
+        """
+
+        if not self.estimator_fitted:
+            raise Exception('The estimator must be fitted before calling predict_proba(...).')
+
+        probabilistic_predictions = self.estimator.predict_proba(X)
+
+        return probabilistic_predictions
+    
+    def predict(self, X, treshold=0.5):
+        """
+        Assign labels to feature vectors based on the estimator's predictions
+
+        X -- List of feature vectors or a precomputed kernel matrix
+        treshold -- The decision treshold between the positive and the negative class
+        """
+        if not self.estimator_fitted:
+            raise Exception('The estimator must be fitted before calling predict(...).')
+
+        return np.array([1. if p > treshold else -1. for p in self.predict_proba(X)])
+
     
     

@@ -8,6 +8,7 @@ import sklearn.linear_model
 import sklearn.ensemble
 
 from puLearning.puAdapter import PUAdapter
+from puLearning.SVM_DoubleWeight import SVM_DoubleWeight
 
 config = {
     "data_file": "data/test_data_formatted.csv",
@@ -30,11 +31,13 @@ classifiers = {
     'puestimator': PUAdapter(svc_estimator, hold_out_ratio=0.2),
     'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator),
     'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator),
+    'SVM_DoubleWeight(E&N2008)': SVM_DoubleWeight(svc_estimator),
 }
 
 classifiers_gridparameters = {
    'puestimator': None,
    'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
    'Bagging LR': {'n_estimators':[100, 200, 300], 'max_samples':[0.1, 0.3, 0.5, 0.7]},
+   'SVM_DoubleWeight(E&N2008)': None,
 
 }
