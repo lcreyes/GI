@@ -15,11 +15,13 @@ import sklearn.ensemble
 #### Basic configuration
 config = {
     "data_file": "data/test_data_formatted.csv",  # input data
-    "out_path": "output",  # output directory (plots/tables)
+    "out_path": "output/norm/",  # output directory (plots/tables)
     "num_folds": 2,   # number of folds for K-Fold
     "test_size": 0.2,  # fraction of sample used as tex
-    "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
     "num_cores": 3,
+    "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
+    # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
+    "pu_rand_samp_frac": False
 }
 
 #### Any custom code to combine new classifiers goes here
