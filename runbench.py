@@ -41,6 +41,7 @@ import sklearn.cross_validation
 
 import datasetup
 import benchmarks
+import roc_cv
 import docopt
 
 
@@ -110,6 +111,8 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
 
     print("Benchmarking {}".format(clf_name))
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
+    #Cross validation using ROC curves:
+    roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
     results_table_rows.append(bench_results)
 
 
