@@ -51,7 +51,7 @@ arguments = docopt.docopt(__doc__)
 
 config_module_name = arguments['<config>']
 if config_module_name is None:  # use default
-    config_module_name = 'voya_config_example'
+    config_module_name = 'voya_config_example_pu'
 else:
     config_module_name = datasetup.parse_config_module_name(config_module_name)
 
