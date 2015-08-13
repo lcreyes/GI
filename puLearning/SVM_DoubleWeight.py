@@ -49,7 +49,7 @@ class SVM_DoubleWeight(object):
         e2 = np.sum(positive_probabilities)/(np.sum(positive_probabilities)+np.sum(unlabeled_probabilities))
         e3 = np.max(positive_probabilities)
         
-        self.c = e3 #using e3 since e1 and e3 are low and create problems with the weights
+        self.c = e1 
         
         self.unlabeled_weights = (1 - self.c)/self.c * unlabeled_probabilities /(1.0 - unlabeled_probabilities)
         
