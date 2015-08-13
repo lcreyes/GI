@@ -2,9 +2,9 @@
 
 """
 import numpy as np
+from sklearn.base import BaseEstimator,TransformerMixin
 
-
-class PUAdapter(object):  # TODO (ryan) rename to something more descriptive
+class PUAdapter(BaseEstimator, TransformerMixin):  # TODO (ryan) rename to something more descriptive
     """
     Adapts any probabilistic binary classifier to positive-unlabled learning using the PosOnly method proposed by
     Elkan and Noto:
