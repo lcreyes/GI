@@ -26,6 +26,7 @@ def reliability_curve(y_test, y_pred, clf_name):
         sklearn.calibration.calibration_curve(y_test, y_pred, n_bins=5, normalize=True)
 
     ax1.set_title('Calibration plots  (reliability curve)')
+    ax1.set_title('{} - Calibration plots  (reliability curve)'.format(clf_name))
     ax1.plot(mean_predicted_value, fraction_of_positives, "s-",
              label="%s" % (clf_name,))
     ax1.set_ylabel("Fraction of positives")
@@ -72,6 +73,7 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     cmap = plt.cm.Blues
 
     ax1.set_title("{} Confusion Matrix".format(clf_name))
+    ax1.set_title("{} - Confusion Matrix".format(clf_name))
     ax1.set_ylabel('True label')
     ax1.set_xlabel('Predicted label')
     ax1.locator_params(nbins=4)
@@ -86,7 +88,7 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
 
     plt.colorbar(confMatrix1, ax=ax1)
 
-    ax2.set_title("{} Normalised Confusion Matrix".format(clf_name))
+    ax2.set_title("Normalised Confusion Matrix")
     ax2.set_ylabel('True label')
     ax2.set_xlabel('Predicted label')
 
@@ -112,13 +114,13 @@ def roc_curve(y_test, y_pred, clf_name):
 
     # Plot of a ROC curve for a specific class
     seaborn.set_style("whitegrid")
-    plt.figure(figsize=(6, 6))
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.figure(figsize=(7, 7))
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' %roc_auc)
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic')
+    plt.title('{} - Receiver operating characteristic'.format(clf_name))
     plt.legend(loc="lower right")
     return roc_auc
