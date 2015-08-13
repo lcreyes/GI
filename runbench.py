@@ -67,7 +67,8 @@ df = datasetup.load_data(voya_config.config['data_file'])
 
 if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
     print("PU Learning Benchmark")
-    df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'])
+    df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'],
+                                                         voya_config.config["pu_rand_samp_frac"])
     y_test, X_test = datasetup.split_df_labels_features(df_test)
     y_train, X_train = datasetup.split_df_labels_features(df_train)
 
@@ -112,6 +113,11 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
     results_table_rows.append(bench_results)
 
+print("\n#######\nResults\n#######")
+num_positives_y_train = y_train.sum()
+print("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
+num_positives_y_test = y_test.sum()
+print("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
 
 results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
 print results_table

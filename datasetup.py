@@ -2,6 +2,7 @@
 """
 
 import pandas
+import numpy as np
 import sklearn.cross_validation
 import sklearn.preprocessing
 
@@ -43,21 +44,30 @@ def scale_features(X):
     return X_scaled
 
 
-def split_test_train_df_pu(df, test_size):
-    """ Splits the data frame containing P, N and U labels into a training and testing dataframes.
+def split_test_train_df_pu(df, test_size, pu_random_sampling_frac=False):
+    """ Splits the data frame containing P, N and U labels into a training and testing dataframes, performing a
+    random shuffle on the positives. If pu_random_sampling_frac is given then that % of unlabelled data is considered
+    negatives in the training set and the rest is discarded
 
     testing =  testsize*P, N
     training = (1-testsize)*P, U
 
     In the process negative labels (-1) are converted to 0 in order to be compare the sets
+
+    :param pu_random_sampling_frac: fraction of unlabelled (0 to 1) to be considered negatives (randomly sampled)
     """
     positives = df[df['label'] == 1]
     negatives = df[df['label'] == -1]
     unlabeled = df[df['label'] == 0]
 
+    positives = positives.reindex(np.random.permutation(positives.index))
+
     num_positives_test = int(len(positives.index) * test_size)
     positives_test = positives[:num_positives_test]
     positives_train = positives[num_positives_test:]
+
+    if pu_random_sampling_frac:
+        unlabeled = unlabeled.sample(frac=pu_random_sampling_frac)
 
     df_train = positives_train.append(unlabeled, ignore_index=True)
     df_test = positives_test.append(negatives, ignore_index=True)
@@ -66,7 +76,7 @@ def split_test_train_df_pu(df, test_size):
     assert set(df_test['label'].unique()) == set((1, -1))
 
     # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
-    df_test.loc[df_test.label == -1,'label']=0
+    df_test.loc[df_test.label == -1, 'label'] = 0
     
     assert set(df_test['label'].unique()) == set((1, 0))
 

@@ -12,11 +12,14 @@ from puLearning.SVM_DoubleWeight import SVM_DoubleWeight
 
 config = {
     "data_file": "data/test_Gaussians_formatted.csv",
-    "out_path": "output",
+    "out_path": "output/pu/",
     "num_folds": 2,
     "test_size": 0.2,
     "pu_learning": True,
-    "num_cores": 3,
+    "num_cores": 1,
+    # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
+    # otherwise we will use all the unlabelled data to train
+    "pu_rand_samp_frac": None
 }
 
 # best parameters for rbf kernel(according to GridSearch)
