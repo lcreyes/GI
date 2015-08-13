@@ -19,6 +19,7 @@ config = {
     "num_folds": 2,   # number of folds for K-Fold
     "test_size": 0.2,  # fraction of sample used as tex
     "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
+    "num_cores": 3,
 }
 
 #### Any custom code to combine new classifiers goes here
@@ -31,11 +32,10 @@ rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logis
 #### Specifiy SKLearn style classifiers here
 classifiers = {
     'Logistic Regression': sklearn.linear_model.LogisticRegression(),
-    'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100),
-    #'SVC': sklearn.svm.SVC(C=1.0, probability=True),
+    'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100, n_jobs=config["num_cores"]),
+    'SVC': sklearn.svm.SVC(C=1.0, probability=True),
     # 'rbm_logistic': rbm_logistic,
-    # 'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(n_estimators=100, learning_rate=0.1,
-    #                                                                  max_depth=2),
+    'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=2),
 }
 
 #### Specifiy arguments and parameters for grid search here, keys must match `classifiers` use None to use defaults
