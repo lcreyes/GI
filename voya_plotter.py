@@ -7,8 +7,6 @@ import seaborn
 
 
 # TODO (ryan) plot titles should include classifer name (or elsewhere on plot)
-
-
 def reliability_curve(y_test, y_pred, clf_name):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html

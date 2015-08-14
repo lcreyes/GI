@@ -85,7 +85,6 @@ else:  # input of positive and negative (i.e 1, 0)
 
     X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
 
-# TODO (ryan) loop over split num only needed for cross-validation?
 results_table_rows = []  # each row is a dict with column_name: value
 
 skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
@@ -112,8 +111,10 @@ for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
 
     print("Benchmarking {}".format(clf_name))
     bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
-    #Cross validation using ROC curves:
+
+    # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
     roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
+
     results_table_rows.append(bench_results)
 
 print("\n#######\nResults\n#######")

@@ -7,8 +7,7 @@ import sklearn.svm
 import sklearn.linear_model
 import sklearn.ensemble
 
-from puLearning.puAdapter import PUAdapter
-from puLearning.SVM_DoubleWeight import SVM_DoubleWeight
+import pulearning
 
 config = {
     "data_file": "data/test_Gaussians_formatted.csv",
@@ -19,7 +18,7 @@ config = {
     "num_cores": 1,
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     # otherwise we will use all the unlabelled data to train
-    "pu_rand_samp_frac": None
+    "pu_rand_samp_frac": False
 }
 
 # best parameters for rbf kernel(according to GridSearch)
@@ -32,15 +31,15 @@ LR_estimator = sklearn.linear_model.LogisticRegression(C=0.4, penalty='l1')
 
 
 classifiers = {
-    'puestimator': PUAdapter(svc_estimator, hold_out_ratio=0.2, ),
-    'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
-                                                      n_jobs=config["num_cores"]),
-    'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
-    'SVM_DoubleWeight(E&N2008)': SVM_DoubleWeight(svc_estimator),
+    'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
+    # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
+    #                                                   n_jobs=config["num_cores"]),
+    # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
+    'SVM_DoubleWeight(E&N2008)': pulearning.SVMDoubleWeight(svc_estimator),
 }
 
 classifiers_gridparameters = {
-    'puestimator': None,
+    'PosOnly(E&N2008)': None,
     # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
     'Bagging SVC': None,
     'Bagging LR': {'n_estimators':[100, 200, 300], 'max_samples':[0.1, 0.3, 0.5, 0.7]},
