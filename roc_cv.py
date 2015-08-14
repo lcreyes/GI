@@ -31,10 +31,6 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
     #Loop over each fold, make distinction on whether grid_search is on/off
     for i, (train, test) in enumerate(cv):
         if param_grid is None:
-            ### Temporary solution while SVM_DoubleWeight(E&N2008) is fixed
-            if(clf_name == 'SVM_DoubleWeight(E&N2008)'):
-                clf_notoptimized.weights_available = False
-            ###
             clf_fitted = clf_notoptimized.fit(X[train], y[train])
 
         else:

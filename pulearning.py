@@ -175,8 +175,7 @@ class SVMDoubleWeight(object):
 
         self.estimator_fitted = False
 
-        self.weights_available = False
-
+      
     def __str__(self):
         class_string = 'PosOnly(p(s=1|y=1,x) ~= {}, Fitted: {}\n' \
                        '        Estimator: {}, \n)'.format(self.estimator, self.c, self.estimator_fitted)
@@ -200,10 +199,9 @@ class SVMDoubleWeight(object):
 
         self.c = e1
 
-        self.unlabeled_weights = (1 - self.c) / self.c * unlabeled_probabilities / (1.0 - unlabeled_probabilities)
+        return (1 - self.c) / self.c * unlabeled_probabilities / (1.0 - unlabeled_probabilities)
 
-        self.weights_available = True
-
+        
     def fit(self, X, y):
 
         self.positives = np.where(y == 1)[0]
@@ -212,8 +210,7 @@ class SVMDoubleWeight(object):
         num_positives = np.size(y[self.positives])
         num_unlabeled = np.size(y[self.unlabeled])
 
-        if not self.weights_available:
-            self._calculate_weights(X, y)
+        unlabeled_weights = self._calculate_weights(X, y)
 
         # define new X set with unlabeled data added twice
         newX = np.vstack((X[self.positives], X[self.unlabeled], X[self.unlabeled]))
@@ -224,7 +221,7 @@ class SVMDoubleWeight(object):
                                np.ones(num_unlabeled), np.zeros(num_unlabeled)))
 
         weights = np.concatenate((np.ones(num_positives),
-                                  self.unlabeled_weights, 1. - self.unlabeled_weights))
+                                  unlabeled_weights, 1. - unlabeled_weights))
 
         self.estimator.C = 1.0
         self.estimator.class_weight = None
