@@ -19,7 +19,7 @@ config = {
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     # otherwise we will use all the unlabelled data to train
     "pu_rand_samp_frac": False,
-    "verbosity": 2
+    "verbosity": 1
 }
 
 # best parameters for rbf kernel(according to GridSearch)
@@ -43,7 +43,7 @@ classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
     # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
     'Bagging SVC': None,
-    'Bagging LR': {'n_estimators':[100], 'max_samples':[0.1, 0.3, 0.7]},
+    'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 
 
