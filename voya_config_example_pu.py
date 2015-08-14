@@ -45,6 +45,4 @@ classifiers_gridparameters = {
     'Bagging SVC': None,
     'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
-
-
 }
