@@ -15,7 +15,7 @@ config = {
     "num_folds": 2,
     "test_size": 0.2,
     "pu_learning": True,
-    "num_cores": 1,
+    "num_cores": 3,
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     # otherwise we will use all the unlabelled data to train
     "pu_rand_samp_frac": False
@@ -42,7 +42,7 @@ classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
     # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
     'Bagging SVC': None,
-    'Bagging LR': {'n_estimators':[100, 200, 300], 'max_samples':[0.1, 0.3, 0.5, 0.7]},
+    'Bagging LR': {'n_estimators':[100], 'max_samples':[0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 
 

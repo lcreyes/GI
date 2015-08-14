@@ -45,83 +45,103 @@ import roc_cv
 import docopt
 
 
-if not __name__ == '__main__':
-    exit('Script is not importable')
+def run_benchmark(config, classifiers, classifiers_gridparameters):
+    """ Runs the benchmark code, see voya_config_example for argument explanation
+    """
 
-arguments = docopt.docopt(__doc__)
+    default_config = {
+        "data_file": None,  # input data
+        "out_path": None,
+        "num_folds": 5,
+        "test_size": 0.2,
+        "num_cores": 1,
+        "pu_learning": False,
+        "pu_rand_samp_frac": False
+    }
 
-config_module_name = arguments['<config>']
-if config_module_name is None:  # use default
-    config_module_name = 'voya_config_example_pu'
-else:
-    config_module_name = datasetup.parse_config_module_name(config_module_name)
+    default_config.update(config)
+    config = default_config
 
-# This config loading as a module may not be entirely sensible, but is very quick for prototyping
-voya_config = importlib.import_module(config_module_name)
-print 'config file: {}.py'.format(config_module_name)
+    if config['out_path'] is not None:
+        out_path = config['out_path']
+        if not os.path.isdir(out_path):
+            os.makedirs(out_path)
 
-out_path = voya_config.config['out_path']
-if not os.path.isdir(out_path):
-    os.makedirs(out_path)
+    df = datasetup.load_data(voya_config.config['data_file'])
 
-df = datasetup.load_data(voya_config.config['data_file'])
+    if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
+        print("PU Learning Benchmark")
+        df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'],
+                                                             voya_config.config["pu_rand_samp_frac"])
 
-if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
-    print("PU Learning Benchmark")
-    df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'],
-                                                         voya_config.config["pu_rand_samp_frac"])
-    y_test, X_test = datasetup.split_df_labels_features(df_test)
-    y_train, X_train = datasetup.split_df_labels_features(df_train)
+        y_test, X_test = datasetup.split_df_labels_features(df_test)
+        y_train, X_train = datasetup.split_df_labels_features(df_train)
 
-    # TODO (ryan) scale features (all together?)
-    # TODO (Luis) shouldn't we scale before splitting the data into train/test?
-    #             it seems to me that we are using different normalizations for each set
-    X_train = datasetup.scale_features(X_train)
-    X_test = datasetup.scale_features(X_test)
+        # TODO (ryan) scale features (all together?)
+        # TODO (Luis) shouldn't we scale before splitting the data into train/test?
+        #             it seems to me that we are using different normalizations for each set
+        X_train = datasetup.scale_features(X_train)
+        X_test = datasetup.scale_features(X_test)
 
-else:  # input of positive and negative (i.e 1, 0)
-    y, X_unscaled = datasetup.split_df_labels_features(df)
-    X = datasetup.scale_features(X_unscaled)
+    else:  # input of positive and negative (i.e 1, 0)
+        y, X_unscaled = datasetup.split_df_labels_features(df)
+        X = datasetup.scale_features(X_unscaled)
 
-    X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
+        X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
 
-results_table_rows = []  # each row is a dict with column_name: value
+    results_table_rows = []  # each row is a dict with column_name: value
 
-skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
+    skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
 
-for clf_name, clf_notoptimized in voya_config.classifiers.iteritems():
-    print("Running {}".format(clf_name))
-    param_grid = voya_config.classifiers_gridparameters[clf_name]
+    for clf_name, clf_notoptimized in classifiers.iteritems():
+        print("Running {}".format(clf_name))
+        param_grid = classifiers_gridparameters[clf_name]
 
-    if param_grid is None:
-        print 'Skipping grid search for {}'.format(clf_name)
-        print "clf_notoptimized {}".format(clf_notoptimized)
+        if param_grid is None:
+            print 'Skipping grid search for {}'.format(clf_name)
+            print "clf_notoptimized {}".format(clf_notoptimized)
 
-        clf_fitted = clf_notoptimized.fit(X_train, y_train)
+            clf_fitted = clf_notoptimized.fit(X_train, y_train)
 
+        else:
+            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
+            clf_fitted = clf.fit(X_train, y_train).best_estimator_
+            clf_optimalParameters = clf.best_params_
+            print (clf_name, clf_optimalParameters)
+
+        print 'X = ', clf_fitted
+
+        y_pred = clf_fitted.predict_proba(X_test)[:, 1]
+
+        print("Benchmarking {}".format(clf_name))
+        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
+
+        # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
+        roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
+
+        results_table_rows.append(bench_results)
+
+    print("\n#######\nResults\n#######")
+    num_positives_y_train = y_train.sum()
+    print("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
+    num_positives_y_test = y_test.sum()
+    print("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
+
+    results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
+    print results_table
+
+
+if __name__ == '__main__':
+    arguments = docopt.docopt(__doc__)
+
+    config_module_name = arguments['<config>']
+    if config_module_name is None:  # use default
+        config_module_name = 'voya_config_example_pu'
     else:
-        clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
-        clf_fitted = clf.fit(X_train, y_train).best_estimator_
-        clf_optimalParameters = clf.best_params_
-        print (clf_name, clf_optimalParameters)
+        config_module_name = datasetup.parse_config_module_name(config_module_name)
 
-    print 'X = ', clf_fitted
+    # This config loading as a module may not be entirely sensible, but is very quick for prototyping
+    voya_config = importlib.import_module(config_module_name)
+    print 'config file: {}.py'.format(config_module_name)
 
-    y_pred = clf_fitted.predict_proba(X_test)[:, 1]
-
-    print("Benchmarking {}".format(clf_name))
-    bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
-
-    # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
-    roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
-
-    results_table_rows.append(bench_results)
-
-print("\n#######\nResults\n#######")
-num_positives_y_train = y_train.sum()
-print("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
-num_positives_y_test = y_test.sum()
-print("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
-
-results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
-print results_table
+    run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
