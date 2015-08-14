@@ -81,6 +81,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     voya_logger.info('loading data from: {}'.format(config['data_file']))
     df = datasetup.load_data(config['data_file'])
 
+    y, X_unscaled = datasetup.split_df_labels_features(df)
+    X = datasetup.scale_features(X_unscaled)
+
     if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
         voya_logger.info("PU Learning Benchmark")
         df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
@@ -96,9 +99,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         X_test = datasetup.scale_features(X_test)
 
     else:  # input of positive and negative (i.e 1, 0)
-        y, X_unscaled = datasetup.split_df_labels_features(df)
-        X = datasetup.scale_features(X_unscaled)
-
         X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
 
     results_table_rows = {}  # each row is a dict with column_name: value
@@ -137,6 +137,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             'X_test': X_test,
             'y_test': y_test,
             'param_grid': param_grid,
+            'X': X,
+            'y': y,
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))

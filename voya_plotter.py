@@ -13,12 +13,17 @@ voya_logger = logging.getLogger('clairvoya')
 
 
 # TODO (ryan) plot titles should include classifer name (or elsewhere on plot)
-def reliability_curve(y_test, y_pred, clf_name):
+def reliability_curve(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
     seaborn.set_style("darkgrid")
     plt.figure(figsize=(10, 10))
     ax1 = plt.subplot2grid((3, 1), (0, 0))
@@ -50,7 +55,7 @@ def reliability_curve(y_test, y_pred, clf_name):
     ax2.legend(loc="upper center", ncol=2)
 
 
-def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
+def confusion_matrix(clf_results, threshold=0.5):
     """ Generates the plot for the confusin matrix
 
     Also does (which maybe it shouldnt)
@@ -63,6 +68,10 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     :param threshold:
     :return:
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
 
     # TODO may want to move cm generation code out of here if we also want numeric output
     binarizer = sklearn.preprocessing.Binarizer(threshold)
@@ -106,12 +115,17 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     plt.colorbar(confMatrix2, ax=ax2)
 
 
-def roc_curve(y_test, y_pred, clf_name):
+def roc_curve(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
     # Compute ROC curve and ROC area for each class
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
     roc_auc = sklearn.metrics.auc(fpr, tpr)
@@ -130,10 +144,17 @@ def roc_curve(y_test, y_pred, clf_name):
     return roc_auc
 
 
-def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
+def roc_curve_cv(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
     """
+
+    clf_name = clf_results["clf_name"]
+    param_grid = clf_results["param_grid"]
+    X = clf_results['X']
+    y = clf_results['y']
+    clf = clf_results['clf']
+
     ###############################################################################
     # Run classifier with cross-validation and plot ROC curves
 
@@ -143,7 +164,6 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)
-    all_tpr = []
 
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
@@ -151,16 +171,12 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
     #Loop over each fold, make distinction on whether grid_search is on/off
     for i, (train, test) in enumerate(cv):
         if param_grid is None:
-            ### Temporary solution while SVM_DoubleWeight(E&N2008) is fixed
-            if(clf_name == 'SVM_DoubleWeight(E&N2008)'):
-                clf_notoptimized.weights_available = False
-            ###
-            clf_fitted = clf_notoptimized.fit(X[train], y[train])
+            clf_fitted = clf.fit(X[train], y[train])
 
         else:
             #Need a second k-fold here to do Grid Sarch on this particular fold
             skf = sklearn.cross_validation.StratifiedKFold(y[train], n_folds=2)
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
+            clf = GridSearchCV(estimator=clf, param_grid=param_grid, cv=skf, scoring='roc_auc')
             clf_fitted = clf.fit(X[train], y[train]).best_estimator_
 
         y_pred = clf_fitted.predict_proba(X[test])[:, 1]
@@ -188,10 +204,14 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
     plt.legend(loc="lower right")
 
 
-def plot_boundary(X_all, y, clf_name, clf_notoptimized):
+def plot_boundary(clf_results):
     #print "Attempting to plot decision boundary..."
     #take the first two features TODO: implement PCA
-    X = X_all[:, :2]
+
+    clf_name = clf_results["clf_name"]
+    X = clf_results['X'][:, :2]
+    y = clf_results['y']
+    clf = clf_results["clf"]
 
     # create a mesh to plot in
     h = .01  # step size in the mesh
@@ -208,7 +228,7 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized):
 
     #plt.subplot(2, 2, i + 1)
     #plt.subplots_adjust(wspace=0.4, hspace=0.4)
-    clf_fitted = clf_notoptimized.fit(X, y)
+    clf_fitted = clf.fit(X, y)
 
     Z = clf_fitted.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:,1]
     Z = np.clip(Z, 0., 1.)
