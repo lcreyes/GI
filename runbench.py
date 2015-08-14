@@ -157,7 +157,10 @@ def set_verbosity_level(level):
     voya_logger.setLevel(levels[level])
     voya_logger.addHandler(console_handler)
 
-    formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s', "%H:%M:%S")
+    if level == 2:
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s', "%H:%M:%S")
+    else:
+        formatter = logging.Formatter('%(message)s', "%H:%M:%S")
     console_handler.setFormatter(formatter)
 
 

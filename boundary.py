@@ -46,7 +46,7 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
     plt.xlim(-0.2, 1.2)
     plt.ylim(-0.2, 1.2)
     plt.title('{} - Decision boundaries'.format(clf_name))
-    plt.legend(loc="top left")
+    plt.legend(loc="upper left")
 
     #plt.show()
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
