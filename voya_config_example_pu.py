@@ -43,7 +43,7 @@ classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
     # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
     'Bagging SVC': None,
-    'Bagging LR': {'n_estimators':[100], 'max_samples':[0.1, 0.3, 0.7]},
+    'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 
 

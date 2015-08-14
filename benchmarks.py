@@ -46,17 +46,19 @@ def all_benchmarks(y_test, y_pred, clf_name, out_path):
     return results_dict
 
 
-def results_dict_to_data_frame(results_table_rows):
-    """ Takes input of a list of dicts, each dict containing the same keys defined in `all_benchmarks`
+def results_dict_to_data_frame(results_dict):
+    """ Takes input of a dict of dicts, each dict containing the same keys defined in `all_benchmarks`
 
     The only essential key is clf_name which forms the index. The rest are assumed to be classifiers which can be
     added on the fly in the all_benchmarks function.
 
-    :param results_table_rows: [ {col1: val1, col2: val2}, {col1, val2, col2: val2}...]
+    :param results_table_rows: {clf_1:{col1: val1, col2: val2}, clf2:{col1, val2, col2: val2}...}
     :return:
     """
 
-    results_table = pandas.DataFrame(results_table_rows).set_index('clf_name')
-    results_table.sort_index(inplace=True)
+    results_table_rows = [row for row in results_dict.values()]
+
+    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score']).sort('clf_name')
+    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score'}, inplace=True)
 
     return results_table

@@ -102,7 +102,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
 
-    results_table_rows = []  # each row is a dict with column_name: value
+    results_table_rows = {}  # each row is a dict with column_name: value
 
     skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
@@ -129,10 +129,19 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         voya_logger.info("Benchmarking {}".format(clf_name))
         bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
 
+        bench_results.update({
+            'y_pred': y_pred,
+            'clf': clf_fitted,
+            'X_train': X_train,
+            'y_train': y_train,
+            'X_test': X_test,
+            'y_test': y_test,
+        })
+
         # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
         roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
-        results_table_rows.append(bench_results)
+        results_table_rows[clf_name] = bench_results
 
     voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
@@ -141,7 +150,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     voya_logger.info("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
 
     results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
-    voya_logger.info(results_table)
+    voya_logger.info('\n{}'.format(results_table))
+
+    return results_table_rows
 
 
 def set_verbosity_level(level):
@@ -174,4 +185,4 @@ if __name__ == '__main__':
     if arguments["-v"] is not None:  # overwrite config verbosity
         voya_config.config["verbosity"] = int(arguments["-v"])
 
-    run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
+    results = run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
