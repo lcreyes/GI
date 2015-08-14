@@ -47,8 +47,6 @@ import docopt
 
 import datasetup
 import benchmarks
-import roc_cv
-import boundary
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -75,8 +73,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
     voya_logger.info("Starting Benchmark")
 
-    if config['out_path'] is not None:
-        out_path = config['out_path']
+    out_path = config['out_path']
+    if out_path is not None:
         if not os.path.isdir(out_path):
             os.makedirs(out_path)
 
@@ -109,6 +107,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
     for clf_name, clf_notoptimized in classifiers.iteritems():
         voya_logger.info("Running {}".format(clf_name))
+
+        clf_results = {'clf_name': clf_name}
+
         param_grid = classifiers_gridparameters[clf_name]
 
         if param_grid is None:
@@ -120,30 +121,30 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         else:
             clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
-            clf_optimalParameters = clf.best_params_
-            voya_logger.info(clf_name, clf_optimalParameters)
+            clf_optimal_parameters = clf.best_params_
+            clf_results['clf_optimal_parameters'] = clf_optimal_parameters
+            voya_logger.info(clf_name, clf_optimal_parameters)
 
         voya_logger.debug('X = {}'.format(clf_fitted))
 
         y_pred = clf_fitted.predict_proba(X_test)[:, 1]
 
-        voya_logger.info("Benchmarking {}".format(clf_name))
-        bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
-
-        bench_results.update({
+        clf_results.update({
             'y_pred': y_pred,
             'clf': clf_fitted,
             'X_train': X_train,
             'y_train': y_train,
             'X_test': X_test,
             'y_test': y_test,
+            'param_grid': param_grid,
         })
 
-        # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
-        #roc_cv.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
-        boundary.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
+        voya_logger.info("Benchmarking {}".format(clf_name))
+        benchmarks.all_benchmarks(clf_results, out_path)
 
-        results_table_rows[clf_name] = bench_results
+        # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
+
+        results_table_rows[clf_name] = clf_results
 
     voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
