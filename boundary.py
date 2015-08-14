@@ -34,6 +34,10 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
     levels = np.linspace(0., 1., 11)
     plt.contourf(xx, yy, Z, cmap=plt.cm.bwr, alpha=0.6, levels=levels)
     cbar = plt.colorbar()
+    #cbar.ax.set_ylabel('probability threshold')
+    cs1 = plt.contour(xx, yy, Z, colors='k', alpha=0.5, levels=[0.,0.5,1.])
+    plt.clabel(cs1, fmt = '%2.1f', colors = 'k', fontsize=14, manual=[(0,1)], inline=1)
+
     # Plot also the training points
     X_pos = X[y==1]
     X_neg = X[y==0]
@@ -46,7 +50,7 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
     plt.xlim(-0.2, 1.2)
     plt.ylim(-0.2, 1.2)
     plt.title('{} - Decision boundaries'.format(clf_name))
-    plt.legend(loc="top left")
+    plt.legend(loc="upper right")
 
     #plt.show()
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
