@@ -1,8 +1,12 @@
 """ PU Learning classifiers
 """
+
+import logging
+
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
+voya_logger = logging.getLogger('clairvoya')
 
 class PosOnly(BaseEstimator, TransformerMixin):
     """

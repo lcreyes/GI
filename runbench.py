@@ -7,7 +7,11 @@ This would then be ran as
     runbench.py config/config_name.py
 
 Usage:
-  runbench.py [<config>]
+  runbench.py [<config>] [-v <level>]
+
+Options:
+    config    config file location
+    -v level  verbosity level 0 = quiet, 1 = info, 2 = debug
 
 Notes:
     Currently the config files are stored in python, these aren't very portable and are not the best end solution
@@ -35,14 +39,17 @@ Syntax:
 
 import os
 import importlib
+import logging
 
 from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
+import docopt
 
 import datasetup
 import benchmarks
 import roc_cv
-import docopt
+
+voya_logger = logging.getLogger('clairvoya')
 
 
 def run_benchmark(config, classifiers, classifiers_gridparameters):
@@ -56,23 +63,29 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "test_size": 0.2,
         "num_cores": 1,
         "pu_learning": False,
-        "pu_rand_samp_frac": False
+        "pu_rand_samp_frac": False,
+        "verbosity": 0,
     }
 
     default_config.update(config)
     config = default_config
+
+    set_verbosity_level(config["verbosity"])
+
+    voya_logger.info("Starting Benchmark")
 
     if config['out_path'] is not None:
         out_path = config['out_path']
         if not os.path.isdir(out_path):
             os.makedirs(out_path)
 
-    df = datasetup.load_data(voya_config.config['data_file'])
+    voya_logger.info('loading data from: {}'.format(config['data_file']))
+    df = datasetup.load_data(config['data_file'])
 
     if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
-        print("PU Learning Benchmark")
-        df_test, df_train = datasetup.split_test_train_df_pu(df, voya_config.config['test_size'],
-                                                             voya_config.config["pu_rand_samp_frac"])
+        voya_logger.info("PU Learning Benchmark")
+        df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
+                                                             config["pu_rand_samp_frac"])
 
         y_test, X_test = datasetup.split_df_labels_features(df_test)
         y_train, X_train = datasetup.split_df_labels_features(df_train)
@@ -87,19 +100,19 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         y, X_unscaled = datasetup.split_df_labels_features(df)
         X = datasetup.scale_features(X_unscaled)
 
-        X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, voya_config.config['test_size'])
+        X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
 
     results_table_rows = []  # each row is a dict with column_name: value
 
-    skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=voya_config.config['num_folds'])
+    skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
     for clf_name, clf_notoptimized in classifiers.iteritems():
-        print("Running {}".format(clf_name))
+        voya_logger.info("Running {}".format(clf_name))
         param_grid = classifiers_gridparameters[clf_name]
 
         if param_grid is None:
-            print 'Skipping grid search for {}'.format(clf_name)
-            print "clf_notoptimized {}".format(clf_notoptimized)
+            voya_logger.info('Skipping grid search for {}'.format(clf_name))
+            voya_logger.debug("clf_notoptimized {}".format(clf_notoptimized))
 
             clf_fitted = clf_notoptimized.fit(X_train, y_train)
 
@@ -107,13 +120,13 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimalParameters = clf.best_params_
-            print (clf_name, clf_optimalParameters)
+            voya_logger.info(clf_name, clf_optimalParameters)
 
-        print 'X = ', clf_fitted
+        voya_logger.debug('X = {}'.format(clf_fitted))
 
         y_pred = clf_fitted.predict_proba(X_test)[:, 1]
 
-        print("Benchmarking {}".format(clf_name))
+        voya_logger.info("Benchmarking {}".format(clf_name))
         bench_results = benchmarks.all_benchmarks(y_test, y_pred, clf_name, out_path)
 
         # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
@@ -121,14 +134,29 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         results_table_rows.append(bench_results)
 
-    print("\n#######\nResults\n#######")
+    voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
-    print("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
+    voya_logger.info("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
     num_positives_y_test = y_test.sum()
-    print("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
+    voya_logger.info("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
 
     results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
-    print results_table
+    voya_logger.info(results_table)
+
+
+def set_verbosity_level(level):
+    """ Set the console verbosity level, 0 - silent, 1 - info, 2 - debug
+    """
+
+    levels = (logging.CRITICAL, logging.INFO, logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(levels[level])
+    voya_logger.setLevel(levels[level])
+    voya_logger.addHandler(console_handler)
+
+    formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s', "%H:%M:%S")
+    console_handler.setFormatter(formatter)
 
 
 if __name__ == '__main__':
@@ -142,6 +170,8 @@ if __name__ == '__main__':
 
     # This config loading as a module may not be entirely sensible, but is very quick for prototyping
     voya_config = importlib.import_module(config_module_name)
-    print 'config file: {}.py'.format(config_module_name)
+
+    if arguments["-v"] is not None:  # overwrite config verbosity
+        voya_config.config["verbosity"] = int(arguments["-v"])
 
     run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)

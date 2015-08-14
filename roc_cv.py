@@ -1,4 +1,5 @@
 import os.path
+import logging
 
 import matplotlib.pyplot as plt
 import sklearn.calibration
@@ -8,12 +9,13 @@ from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
 
+
 def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
     """
-###############################################################################
-# Run classifier with cross-validation and plot ROC curves
+    ###############################################################################
+    # Run classifier with cross-validation and plot ROC curves
 
     # Do an initial kfold on the data- n_folds will be the number of roc curves shown
     # Can be the same from voya_config

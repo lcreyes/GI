@@ -2,12 +2,14 @@
 """
 
 import os.path
+import logging
 
 import matplotlib.pyplot as plt
-import sklearn.metrics
 import pandas
 
 import voya_plotter
+
+voya_logger = logging.getLogger('clairvoya')
 
 
 def all_benchmarks(y_test, y_pred, clf_name, out_path):

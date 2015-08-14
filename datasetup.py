@@ -2,9 +2,12 @@
 """
 
 import pandas
+import logging
 import numpy as np
 import sklearn.cross_validation
 import sklearn.preprocessing
+
+voya_logger = logging.getLogger('clairvoya')
 
 
 def load_data(filename):
@@ -19,7 +22,6 @@ def load_data(filename):
     :return: y, X_scaled
     """
 
-    print('loading data from: {}'.format(filename))
     df = pandas.read_csv(filename)
 
     return df

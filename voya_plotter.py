@@ -1,9 +1,13 @@
+import logging
+
 import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
 import sklearn.metrics
 import numpy
 import seaborn
+
+voya_logger = logging.getLogger('clairvoya')
 
 
 # TODO (ryan) plot titles should include classifer name (or elsewhere on plot)

@@ -21,7 +21,8 @@ config = {
     "num_cores": 3,
     "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
-    "pu_rand_samp_frac": False
+    "pu_rand_samp_frac": False,
+    "verbosity": 1  # console output verbosity 0 = quiet, 1 = info, 2 = debug
 }
 
 #### Any custom code to combine new classifiers goes here
