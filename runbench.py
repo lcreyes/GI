@@ -82,7 +82,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     voya_logger.info('loading data from: {}'.format(config['data_file']))
     df = datasetup.load_data(config['data_file'])
 
-    if voya_config.config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
+    if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
         voya_logger.info("PU Learning Benchmark")
         df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
                                                              config["pu_rand_samp_frac"])

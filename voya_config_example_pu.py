@@ -19,7 +19,7 @@ config = {
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     # otherwise we will use all the unlabelled data to train
     "pu_rand_samp_frac": False,
-    "verbosity": 2
+    "verbosity": 1
 }
 
 # best parameters for rbf kernel(according to GridSearch)
