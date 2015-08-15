@@ -148,9 +148,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
     voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
-    voya_logger.info("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train-num_positives_y_train)))
+    voya_logger.info("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train)-num_positives_y_train))
     num_positives_y_test = y_test.sum()
-    voya_logger.info("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test-num_positives_y_test)))
+    voya_logger.info("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test)-num_positives_y_test))
 
     results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
     voya_logger.info('\n{}'.format(results_table))
