@@ -151,8 +151,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
             voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
-            if clf_results['clf_name'] == "Random Forests":  # TODO (ryan) check classifier type not the name
-                voya_plotter.plot_trees(clf_results['clf'], out_path)  # TODO (ryan) put tree plots in their own folder
+
+            if clf_results['clf'].__class__.__name__ == "RandomForestClassifier": 
+                voya_plotter.plot_trees(clf_results['clf'], out_path)  
 
         results_table_rows[clf_name] = clf_results
 
