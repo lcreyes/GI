@@ -144,22 +144,15 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             'y': y,
         })
 
-
-        #plot random forest decision trees
-        if clf_results['clf_name'] == "Random Forests":
-            voya_plotter.plot_trees(clf_results['clf'],out_path)
-
-
-
-
         voya_logger.info("Benchmarking {}".format(clf_name))
-        benchmarks.all_benchmarks(clf_results, out_path)
+        benchmarks.all_benchmarks(clf_results, out_path)  # TODO (ryan) split this up now into benchmarks and plots?
 
-        if out_path is not None:
+        if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
             voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
-        # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
+            if clf_results['clf_name'] == "Random Forests":  # TODO (ryan) check classifier type not the name
+                voya_plotter.plot_trees(clf_results['clf'], out_path)  # TODO (ryan) put tree plots in their own folder
 
         results_table_rows[clf_name] = clf_results
 
