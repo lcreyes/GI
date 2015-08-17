@@ -47,7 +47,7 @@ def all_benchmarks(clf_results, out_path):
         # voya_plotter.roc_curve_cv(clf_results)
         # plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
     
-        voya_plotter.tprVSranking_curve(y_test, y_pred, clf_name)
+        voya_plotter.tprVSranking_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'tprVsRank__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
         plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
