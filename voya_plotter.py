@@ -273,7 +273,11 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
     cbar = plt.colorbar()
     #cbar.ax.set_ylabel('probability threshold')
     cs1 = plt.contour(xx, yy, Z, colors='k', alpha=0.5, levels=[0.,0.5,1.])
-    plt.clabel(cs1, fmt = '%2.1f', colors = 'k', fontsize=14, manual=[(0,1)], inline=1)
+    
+    try:
+        plt.clabel(cs1, fmt = '%2.1f', colors = 'k', fontsize=14, manual=[(0,1)], inline=1)
+    except UnboundLocalError:
+        pass #in case there is no 0.5 contour in map.
 
     # Plot also the training points
     X_pos = X[y==1]
