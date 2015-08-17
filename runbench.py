@@ -155,7 +155,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')
-                voya_plotter.plot_trees(clf_results['clf'], out_path)
+                feature_names=['cid/tech/ecommerce','url/tech/traffic_rank','url/tech/conversion_tracking','url/tech/html_ids','url/tech/html_classes','url/tech/login','url/tech/platform_count','url/tech/subscribe','url/tech/univ_analytics','url/tech/tech_sum','url/tech/likes','url/tech/feedback','url/tech/analytics_count','url/tech/video_count','url/tech/mobile_aware']
+                voya_plotter.plot_trees(clf_results['clf'],feature_names,out_path)
 
         results_table_rows[clf_name] = clf_results
 

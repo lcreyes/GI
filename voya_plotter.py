@@ -296,16 +296,19 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
     plt.close()
 
 
-
-def plot_trees(clf_fitted,out_path):
+def plot_trees(clf_fitted,feature_names,out_path):
+    print("numner of features",clf_fitted.n_features_)
     subdir = "forest-trees"
     mksubdir = "mkdir -p " + out_path + subdir
     system(mksubdir)
     for i, tree in enumerate(clf_fitted.estimators_):
         with open(out_path + subdir + '/RandomForests_tree_' + str(i) + '.dot', 'w') as dotfile:
-            export_graphviz(tree,dotfile,max_depth=4)
+            export_graphviz(tree,dotfile,feature_names=feature_names,max_depth=4)
             dotfile.close()
             dot2png="dot -Tpng " + out_path + subdir + "/RandomForests_tree_" + str(i) + ".dot -o " + out_path + subdir + "/RandomForests_tree_" + str(i) + ".png"
             system(dot2png)
             rmdot="rm " + out_path + subdir + "/*.dot"
     system(rmdot)
+
+
+
