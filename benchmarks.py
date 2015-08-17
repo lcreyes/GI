@@ -54,6 +54,9 @@ def all_benchmarks(clf_results, out_path):
     voya_plotter.plot_boundary(X_train, y_train, clf_name, clf)
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
+    voya_plotter.tprVSranking_curve(y_test, y_pred, clf_name)
+    plt.savefig(os.path.join(out_path, 'tprVsRank__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+
     clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
