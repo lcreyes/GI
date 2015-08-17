@@ -1,4 +1,7 @@
 """ Main file to load config and run all classifiers and benchmarks
+
+Notes, currently its assumed data files loaded are structured, id, label, X_1, X_2 ... X_n this is hard coded in both
+split_df_labels_features and scale_dataframe_features
 """
 
 import pandas
@@ -34,7 +37,16 @@ def split_df_labels_features(df):
     y = df['label']
     X = df.iloc[:, 2:]  # first few columns are ids and the labels
 
-    return y.values, X
+    return y.values, X.values
+
+
+def scale_dataframe_features(df):
+    """ Performes a Min Max scaling between 0 and 1 to a whole dataframe
+    :param df:
+    :return: pandas.core.frame.DataFrame
+    """
+
+    df[df.columns[2:]] = df[df.columns[2:]].apply(lambda x: sklearn.preprocessing.MinMaxScaler().fit_transform(x))
 
 
 def scale_features(X):

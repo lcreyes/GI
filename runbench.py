@@ -82,8 +82,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     voya_logger.info('loading data from: {}'.format(config['data_file']))
     df = datasetup.load_data(config['data_file'])
 
-    y, X_unscaled = datasetup.split_df_labels_features(df)
-    X = datasetup.scale_features(X_unscaled)
+    datasetup.scale_dataframe_features(df)
+
+    y, X = datasetup.split_df_labels_features(df)
 
     if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
         voya_logger.info("PU Learning Benchmark")
@@ -92,10 +93,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         y_test, X_test = datasetup.split_df_labels_features(df_test)
         y_train, X_train = datasetup.split_df_labels_features(df_train)
-
-        # TODO (ryan) scale features (all together?)
-        X_train = datasetup.scale_features(X_train)
-        X_test = datasetup.scale_features(X_test)
 
     else:  # input of positive and negative (i.e 1, 0)
         X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
