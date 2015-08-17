@@ -32,6 +32,7 @@ def all_benchmarks(clf_results, out_path):
     X_train = clf_results["X_train"]
     clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
+    y_pred_label = clf_results ["y_pred_label"]
     clf = clf_results["clf"]
     param_grid = clf_results["param_grid"]
 
@@ -54,6 +55,7 @@ def all_benchmarks(clf_results, out_path):
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
     clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
+    clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
     plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
@@ -70,7 +72,7 @@ def results_dict_to_data_frame(results_dict):
 
     results_table_rows = [row for row in results_dict.values()]
 
-    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score']).sort('clf_name')
-    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score'}, inplace=True)
+    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'f1_score']).sort('clf_name')
+    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 'f1_score': 'F1 Score'}, inplace=True)
 
     return results_table

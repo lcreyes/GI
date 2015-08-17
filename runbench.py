@@ -128,9 +128,12 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         voya_logger.debug('X = {}'.format(clf_fitted))
 
         y_pred = clf_fitted.predict_proba(X_test)[:, 1]
-
+        
+        y_pred_label = clf_fitted.predict(X_test)
+        
         clf_results.update({
             'y_pred': y_pred,
+            'y_pred_label' : y_pred_label,
             'clf': clf_fitted,
             'X_train': X_train,
             'y_train': y_train,
