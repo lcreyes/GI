@@ -215,8 +215,8 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
         labels = ['x_1','x_2']
     # create a mesh to plot in
     h = .01  # step size in the mesh
-    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
-    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
                      np.arange(y_min, y_max, h))
 
@@ -269,4 +269,3 @@ def plot_trees(clf_fitted,out_path):
             system(dot2png)
             rmdot="rm " + out_path + subdir + "/*.dot"
     system(rmdot)
-
