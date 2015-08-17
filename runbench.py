@@ -47,6 +47,7 @@ import docopt
 
 import datasetup
 import benchmarks
+import voya_plotter
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -132,6 +133,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         clf_results.update({
             'y_pred': y_pred,
             'clf': clf_fitted,
+            'clf_notoptimized': clf_notoptimized,
             'X_train': X_train,
             'y_train': y_train,
             'X_test': X_test,
@@ -143,6 +145,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path)
+
+        voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
+        voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
         # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
 
