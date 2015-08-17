@@ -144,6 +144,14 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             'y': y,
         })
 
+
+        #plot random forest decision trees
+        if clf_results['clf_name'] == "Random Forests":
+            voya_plotter.plot_trees(clf_results['clf'],out_path)
+
+
+
+
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path)
 
