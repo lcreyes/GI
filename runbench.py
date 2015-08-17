@@ -147,11 +147,15 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         benchmarks.all_benchmarks(clf_results, out_path)  # TODO (ryan) split this up now into benchmarks and plots?
 
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
+            voya_logger.debug('Generating Plot Boundary')
             voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
+
+            voya_logger.debug('Generating roc curve cv')
             voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
-                    voya_plotter.plot_trees(clf_results['clf'], out_path)
+                voya_logger.debug('Generating random forrest plot')
+                voya_plotter.plot_trees(clf_results['clf'], out_path)
 
         results_table_rows[clf_name] = clf_results
 

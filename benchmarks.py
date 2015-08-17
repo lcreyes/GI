@@ -35,18 +35,23 @@ def all_benchmarks(clf_results, out_path):
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
     if out_path is not None:  # output plots to out_path
+        voya_logger.debug('Generating Reliability Curve')
         voya_plotter.reliability_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches='tight')
 
+        voya_logger.debug('Generating Confusion Matrix')
         voya_plotter.confusion_matrix(clf_results)
         plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches='tight')
 
+        voya_logger.debug('Generating roc curve')
         voya_plotter.roc_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name)), bbox_inches='tight')
 
+        # voya_logger.debug('Generating roc curve cv')
         # voya_plotter.roc_curve_cv(clf_results)
         # plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
-    
+
+        voya_logger.debug('Generating tprVSranking curve')
         voya_plotter.tprVSranking_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'tprVsRank__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
