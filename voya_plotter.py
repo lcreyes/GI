@@ -13,12 +13,17 @@ voya_logger = logging.getLogger('clairvoya')
 
 
 # TODO (ryan) plot titles should include classifer name (or elsewhere on plot)
-def reliability_curve(y_test, y_pred, clf_name):
+def reliability_curve(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
     seaborn.set_style("darkgrid")
     plt.figure(figsize=(10, 10))
     ax1 = plt.subplot2grid((3, 1), (0, 0))
@@ -50,7 +55,7 @@ def reliability_curve(y_test, y_pred, clf_name):
     ax2.legend(loc="upper center", ncol=2)
 
 
-def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
+def confusion_matrix(clf_results, threshold=0.5):
     """ Generates the plot for the confusin matrix
 
     Also does (which maybe it shouldnt)
@@ -63,6 +68,10 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     :param threshold:
     :return:
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
 
     # TODO may want to move cm generation code out of here if we also want numeric output
     binarizer = sklearn.preprocessing.Binarizer(threshold)
@@ -106,12 +115,17 @@ def confusion_matrix(y_test, y_pred, clf_name, threshold=0.5):
     plt.colorbar(confMatrix2, ax=ax2)
 
 
-def roc_curve(y_test, y_pred, clf_name):
+def roc_curve(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/calibration/plot_compare_calibration.html
         Author: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
         License: BSD Style.
     """
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
     # Compute ROC curve and ROC area for each class
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
     roc_auc = sklearn.metrics.auc(fpr, tpr)
@@ -130,7 +144,7 @@ def roc_curve(y_test, y_pred, clf_name):
     return roc_auc
 
 
-def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
+def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
     """
@@ -182,9 +196,10 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid):
     plt.ylabel('True Positive Rate')
     plt.title('%s - Receiver operating characteristic CV' %clf_name)
     plt.legend(loc="lower right")
+    plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
 
 
-def plot_boundary(X_all, y, clf_name, clf_notoptimized):
+def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
     #print "Attempting to plot decision boundary..."
     #take the first two features TODO: implement PCA
     X = X_all[:, :2]
@@ -231,3 +246,6 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized):
     plt.ylim(-0.2, 1.2)
     plt.title('{} - Decision boundaries'.format(clf_name))
     plt.legend(loc="upper right")
+
+    #plt.show()
+    plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')

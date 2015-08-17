@@ -27,32 +27,26 @@ def all_benchmarks(clf_results, out_path):
     """
 
     y_test = clf_results["y_test"]
-    y_train = clf_results["y_train"]
-    X_test = clf_results["X_test"]
-    X_train = clf_results["X_train"]
-    clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
     y_pred_label = clf_results ["y_pred_label"]
-    clf = clf_results["clf"]
-    param_grid = clf_results["param_grid"]
+    clf_name = clf_results["clf_name"].replace(' ', '')  # no spaces in plot file name
 
-    # TODO (ryan) pass dictionary to plots so they can be used outside func
     # TODO (ryan) think about structure here, have a common interface and move the params to config like classifiers?
-    voya_plotter.reliability_curve(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+    voya_plotter.reliability_curve(clf_results)
+    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches='tight')
 
-    voya_plotter.confusion_matrix(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+    voya_plotter.confusion_matrix(clf_results)
+    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches='tight')
 
     # TODO (ryan) auc score should probably be computed here and passed to roc_curve, expecailly if we k-fold it in future
-    voya_plotter.roc_curve(y_test, y_pred, clf_name)
-    plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+    voya_plotter.roc_curve(clf_results)
+    plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name)), bbox_inches='tight')
 
-    voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf, param_grid)
-    plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+    # voya_plotter.roc_curve_cv(clf_results)
+    # plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
 
-    voya_plotter.plot_boundary(X_train, y_train, clf_name, clf)
-    plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+    # voya_plotter.plot_boundary(clf_results)
+    # plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
 
     clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
@@ -71,7 +65,6 @@ def results_dict_to_data_frame(results_dict):
     """
 
     results_table_rows = [row for row in results_dict.values()]
-
     results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'f1_score']).sort('clf_name')
     results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 'f1_score': 'F1 Score'}, inplace=True)
 

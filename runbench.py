@@ -47,6 +47,7 @@ import docopt
 
 import datasetup
 import benchmarks
+import voya_plotter
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -81,6 +82,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     voya_logger.info('loading data from: {}'.format(config['data_file']))
     df = datasetup.load_data(config['data_file'])
 
+    y, X_unscaled = datasetup.split_df_labels_features(df)
+    X = datasetup.scale_features(X_unscaled)
+
     if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
         voya_logger.info("PU Learning Benchmark")
         df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
@@ -96,9 +100,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         X_test = datasetup.scale_features(X_test)
 
     else:  # input of positive and negative (i.e 1, 0)
-        y, X_unscaled = datasetup.split_df_labels_features(df)
-        X = datasetup.scale_features(X_unscaled)
-
         X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
 
     results_table_rows = {}  # each row is a dict with column_name: value
@@ -135,15 +136,21 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             'y_pred': y_pred,
             'y_pred_label' : y_pred_label,
             'clf': clf_fitted,
+            'clf_notoptimized': clf_notoptimized,
             'X_train': X_train,
             'y_train': y_train,
             'X_test': X_test,
             'y_test': y_test,
             'param_grid': param_grid,
+            'X': X,
+            'y': y,
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path)
+
+        voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
+        voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
         # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
 
