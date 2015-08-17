@@ -147,16 +147,11 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         benchmarks.all_benchmarks(clf_results, out_path)  # TODO (ryan) split this up now into benchmarks and plots?
 
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
-            voya_logger.debug('Generating Plot Boundary')
-            voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
-
-            voya_logger.debug('Generating roc curve cv')
-            voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
-
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')
-                feature_names=['cid/tech/ecommerce','url/tech/traffic_rank','url/tech/conversion_tracking','url/tech/html_ids','url/tech/html_classes','url/tech/login','url/tech/platform_count','url/tech/subscribe','url/tech/univ_analytics','url/tech/tech_sum','url/tech/likes','url/tech/feedback','url/tech/analytics_count','url/tech/video_count','url/tech/mobile_aware']
-                voya_plotter.plot_trees(clf_results['clf'],feature_names,out_path)
+                # TODO (ryan) weve hardcoded '2' where the feature start several times, export to var?
+                feature_names = [colname.replace('url/tech/', '').replace('cid/tech/', '') for colname in df.columns[2:]]
+                voya_plotter.plot_trees(clf_results['clf'],feature_names)
 
         results_table_rows[clf_name] = clf_results
 

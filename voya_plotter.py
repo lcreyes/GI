@@ -184,12 +184,21 @@ def roc_curve(clf_results):
     plt.legend(loc="lower right")
 
 
-def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
+def roc_curve_cv(clf_results):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
     """
     ###############################################################################
     # Run classifier with cross-validation and plot ROC curves
+
+    y_train = clf_results["y_train"]
+    X_train = clf_results["X_train"]
+    clf_name = clf_results["clf_name"]
+    clf_notoptimized = clf_results["clf_notoptimized"]
+    param_grid = clf_results["param_grid"]
+
+    X = X_train
+    y = y_train
 
     # Do an initial kfold on the data- n_folds will be the number of roc curves shown
     # Can be the same from voya_config
@@ -197,7 +206,6 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)
-    all_tpr = []
 
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
@@ -236,18 +244,29 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
     plt.ylabel('True Positive Rate')
     plt.title('%s - Receiver operating characteristic CV' %clf_name)
     plt.legend(loc="lower right")
-    plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
-    plt.close()
 
 
-def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
-    #if runPCA, then run PCA on the features, otherwise, get the first 2
-    if runPCA:
-        X = sklearn.decomposition.PCA(n_components=2).fit_transform(X_all)
+def plot_boundary(clf_results, runPCA=True):
+    """ Plots the training data with the first two principle components (or features) with the decision boundries of the
+    classifier
+
+    :param runPCA: whether to use the first 2 principle componenets from PCA or the first 2 features in the data frame
+    """
+
+    y_train = clf_results["y_train"]
+    X_train = clf_results["X_train"]
+    clf_name = clf_results["clf_name"]
+    clf_notoptimized = clf_results["clf_notoptimized"]
+
+    X = X_train
+    y = y_train
+
+    if runPCA:  # then run PCA on the features and take top 2
+        X = sklearn.decomposition.PCA(n_components=2).fit_transform(X)
         X = sklearn.preprocessing.MinMaxScaler().fit_transform(X)
         labels = ['pca_1','pca_2']
-    else:
-        X = X = X_all[:, :2]
+    else:  # select first 2 features
+        X = X[:, :2]
         labels = ['x_1','x_2']
     # create a mesh to plot in
     h = .01  # step size in the mesh
@@ -291,9 +310,6 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
     plt.ylim(-0.2, 1.2)
     plt.title('{} - Decision boundaries'.format(clf_name))
     plt.legend(loc="upper right")
-
-    plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
-    plt.close()
 
 
 def plot_trees(clf_fitted,feature_names,out_path):
