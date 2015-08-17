@@ -148,7 +148,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
         return np.array([1. if p > treshold else -1. for p in self.predict_proba(X)])
 
 
-class SVMDoubleWeight(object):
+class PULearnByDoubleWeighting(object):
     """
     Runs the second approach described in Elkan & Noto (2008) for training on
     Positive +  Unlabeled (PU) data, namely:
@@ -163,7 +163,7 @@ class SVMDoubleWeight(object):
 
     def __init__(self, estimator):
         """
-        estimator -- An estimator (SVC) of p(s=1|x):
+        estimator -- An estimator of p(s=1|x):
         """
         self.estimator = estimator
 
@@ -223,8 +223,11 @@ class SVMDoubleWeight(object):
         weights = np.concatenate((np.ones(num_positives),
                                   unlabeled_weights, 1. - unlabeled_weights))
 
-        self.estimator.C = 1.0
-        self.estimator.class_weight = None
+        if hasattr(self.estimator, 'C'):
+            self.estimator.C = 1.0
+        
+        if hasattr(self.estimator, 'class_weight'):
+            self.estimator.class_weight = None
 
         self.estimator.fit(newX, newy, sample_weight=weights)
 
