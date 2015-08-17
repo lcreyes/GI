@@ -256,6 +256,7 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
     plt.close()
 
 
+
 def plot_trees(clf_fitted,out_path):
     subdir = "forest-trees"
     mksubdir = "mkdir -p " + out_path + subdir
@@ -268,3 +269,4 @@ def plot_trees(clf_fitted,out_path):
             system(dot2png)
             rmdot="rm " + out_path + subdir + "/*.dot"
     system(rmdot)
+
