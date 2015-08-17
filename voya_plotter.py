@@ -8,6 +8,9 @@ import sklearn.metrics
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
+from sklearn.tree import export_graphviz
+from os import system
+
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -249,3 +252,15 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
 
     #plt.show()
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
+
+
+def plot_trees(clf_fitted,out_path):
+    for i, tree in enumerate(clf_fitted.estimators_):
+        with open(out_path + '/RandomForests_tree_' + str(i) + '.dot', 'w') as dotfile:
+            export_graphviz(tree,dotfile,max_depth=4)
+            dotfile.close()
+            dot2png="dot -Tpng " + out_path + "/RandomForests_tree_" + str(i) + ".dot -o " + out_path + "/RandomForests_tree_" + str(i) + ".png"
+            system(dot2png)
+            rmdot="rm " + out_path + "*.dot"
+    system(rmdot)
+
