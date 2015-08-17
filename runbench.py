@@ -94,8 +94,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         y_train, X_train = datasetup.split_df_labels_features(df_train)
 
         # TODO (ryan) scale features (all together?)
-        # TODO (Luis) shouldn't we scale before splitting the data into train/test?
-        #             it seems to me that we are using different normalizations for each set
         X_train = datasetup.scale_features(X_train)
         X_test = datasetup.scale_features(X_test)
 
@@ -149,8 +147,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path)
 
-        voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
-        voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
+        if out_path is not None:
+            voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
+            voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
         # Cross validation using ROC curves TODO (ryan) think about moving this into benchmarks
 

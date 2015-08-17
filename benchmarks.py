@@ -31,27 +31,26 @@ def all_benchmarks(clf_results, out_path):
     y_pred_label = clf_results ["y_pred_label"]
     clf_name = clf_results["clf_name"].replace(' ', '')  # no spaces in plot file name
 
-    # TODO (ryan) think about structure here, have a common interface and move the params to config like classifiers?
-    voya_plotter.reliability_curve(clf_results)
-    plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches='tight')
-
-    voya_plotter.confusion_matrix(clf_results)
-    plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches='tight')
-
-    # TODO (ryan) auc score should probably be computed here and passed to roc_curve, expecailly if we k-fold it in future
-    voya_plotter.roc_curve(clf_results)
-    plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name)), bbox_inches='tight')
-
-    # voya_plotter.roc_curve_cv(clf_results)
-    # plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
-
-    # voya_plotter.plot_boundary(clf_results)
-    # plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
-
     clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
-    plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
+    if out_path is not None:  # output plots to out_path
+        voya_plotter.reliability_curve(clf_results)
+        plt.savefig(os.path.join(out_path, 'reli_curve__{}'.format(clf_name)), bbox_inches='tight')
+
+        voya_plotter.confusion_matrix(clf_results)
+        plt.savefig(os.path.join(out_path, 'conf_matrix__{}'.format(clf_name)), bbox_inches='tight')
+
+        voya_plotter.roc_curve(clf_results)
+        plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name)), bbox_inches='tight')
+
+        # voya_plotter.roc_curve_cv(clf_results)
+        # plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
+
+        # voya_plotter.plot_boundary(clf_results)
+        # plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
+
+        plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
 
 def results_dict_to_data_frame(results_dict):
