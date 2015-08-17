@@ -43,6 +43,7 @@ import logging
 
 from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
+import sklearn.ensemble
 import docopt
 
 import datasetup
@@ -65,6 +66,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "pu_learning": False,
         "pu_rand_samp_frac": False,
         "verbosity": 0,
+        "random_forest_tree_plot": False
     }
 
     default_config.update(config)
@@ -148,9 +150,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_plotter.plot_boundary(X_train, y_train, clf_name, clf_notoptimized, out_path)
             voya_plotter.roc_curve_cv(X_train, y_train, clf_name, clf_notoptimized, param_grid, out_path)
 
-
-            if clf_results['clf'].__class__.__name__ == "RandomForestClassifier": 
-                voya_plotter.plot_trees(clf_results['clf'], out_path)  
+            if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
+                    voya_plotter.plot_trees(clf_results['clf'], out_path)
 
         results_table_rows[clf_name] = clf_results
 

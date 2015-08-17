@@ -22,7 +22,8 @@ config = {
     "pu_learning": False,  # input dataset is PU (i.e contains positive 1, unlabeled 0, and negative -1 labels)
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     "pu_rand_samp_frac": False,
-    "verbosity": 1  # console output verbosity 0 = quiet, 1 = info, 2 = debug
+    "verbosity": 1,  # console output verbosity 0 = quiet, 1 = info, 2 = debug
+    "random_forest_tree_plot": False,
 }
 
 #### Any custom code to combine new classifiers goes here
@@ -35,7 +36,7 @@ rbm_logistic = sklearn.pipeline.Pipeline(steps=[('rbm', rbm), ('logistic', logis
 #### Specifiy SKLearn style classifiers here
 classifiers = {
     'Logistic Regression': sklearn.linear_model.LogisticRegression(),
-    # 'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100, n_jobs=config["num_cores"]),
+    'Random Forests': sklearn.ensemble.RandomForestClassifier(n_estimators=100, n_jobs=config["num_cores"]),
     # 'SVC': sklearn.svm.SVC(C=1.0, probability=True),
     # 'rbm_logistic': rbm_logistic,
     # 'Gradient Boosting': sklearn.ensemble.GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=2),
