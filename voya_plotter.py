@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
 import sklearn.metrics
+import sklearn.decomposition
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
@@ -203,11 +204,15 @@ def roc_curve_cv(X, y, clf_name, clf_notoptimized, param_grid, out_path):
     plt.close()
 
 
-def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
-    #print "Attempting to plot decision boundary..."
-    #take the first two features TODO (Mauricio) implement PCA
-    X = X_all[:, :2]
-
+def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path, runPCA=True):
+    #if runPCA, then run PCA on the features, otherwise, get the first 2
+    if runPCA:
+        X = sklearn.decomposition.PCA(n_components=2).fit_transform(X_all)
+        X = sklearn.preprocessing.MinMaxScaler().fit_transform(X)
+        labels = ['pca_1','pca_2']
+    else:
+        X = X = X_all[:, :2]
+        labels = ['x_1','x_2']
     # create a mesh to plot in
     h = .01  # step size in the mesh
     x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
@@ -220,9 +225,6 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
 
     # Plot the decision boundary. For that, we will assign a color to each
     # point in the mesh [x_min, m_max]x[y_min, y_max].
-
-    #plt.subplot(2, 2, i + 1)
-    #plt.subplots_adjust(wspace=0.4, hspace=0.4)
     clf_fitted = clf_notoptimized.fit(X, y)
 
     Z = clf_fitted.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:,1]
@@ -243,15 +245,13 @@ def plot_boundary(X_all, y, clf_name, clf_notoptimized, out_path):
     plt.scatter(X_neg[:, 0], X_neg[:, 1], c='b', alpha=0.8, label="Unlabeled")
     plt.scatter(X_pos[:, 0], X_pos[:, 1], c='r', alpha=0.8, label="Positives")
 
-    #plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired, alpha=0.8)
-    plt.xlabel('x_1')
-    plt.ylabel('x_2')
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
     plt.xlim(-0.2, 1.2)
     plt.ylim(-0.2, 1.2)
     plt.title('{} - Decision boundaries'.format(clf_name))
     plt.legend(loc="upper right")
 
-    #plt.show()
     plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name.replace(' ', ''))), bbox_inches = 'tight')
     plt.close()
 
