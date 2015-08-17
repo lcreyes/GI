@@ -1,5 +1,6 @@
 import logging
 import os.path
+import pandas
 
 import matplotlib.pyplot as plt
 import sklearn.calibration
@@ -15,6 +16,41 @@ from os import system
 
 voya_logger = logging.getLogger('clairvoya')
 
+def tprVSranking_curve(clf_results):
+
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
+    ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob','label'])
+    ytuple = ytuple.sort(columns='prob', ascending=False)
+ 
+    num_positives = np.sum(y_test)
+    num_total = y_test.size
+    
+    curve= np.asarray((0., 0.)) #first point is always (0, 0)
+    
+    perfect_classifier_curve = np.array([[0., 0.], [float(num_positives)/num_total, 1.], [1.,1.]])
+    random_classifier_curve = np.array([[0., 0.], [1., 0.5]])
+
+    for r in range(y_test.size):
+        rankedSet = ytuple.iloc[0:r,:]
+        truePositives = rankedSet[np.logical_and(rankedSet.prob>0.5, rankedSet.label==1)]
+        true_positive_rate = truePositives.shape[0]/num_positives
+        curve = np.vstack((curve, np.asarray((float(r)/num_total, true_positive_rate))))
+
+    # Plot curve 
+    seaborn.set_style("whitegrid")
+    plt.figure(figsize=(7, 7))
+    plt.plot(curve[:,0], curve[:,1], label=clf_name)
+    plt.plot(perfect_classifier_curve[:,0], perfect_classifier_curve[:,1], label='Perfect Classifier')
+    plt.plot(random_classifier_curve[:,0], random_classifier_curve[:,1], label='Random Classifier')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
+    plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
+    plt.ylabel('True Positive Rate')
+    plt.title('{} - True Positive Rate vs Fraction of data'.format(clf_name))
+    plt.legend(loc="lower right")
 
 def reliability_curve(clf_results):
     """
