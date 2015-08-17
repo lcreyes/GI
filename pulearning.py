@@ -135,7 +135,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
 
         return probabilistic_predictions
 
-    def predict(self, X, treshold=0.5):
+    def predict(self, X):
         """
         Assign labels to feature vectors based on the estimator's predictions
 
@@ -145,7 +145,8 @@ class PosOnly(BaseEstimator, TransformerMixin):
         if not self.estimator_fitted:
             raise Exception('The estimator must be fitted before calling predict(...).')
 
-        return np.array([1. if p > treshold else -1. for p in self.predict_proba(X)])
+
+        return self.estimator.predict(X)
 
 
 class PULearnByDoubleWeighting(object):
@@ -249,7 +250,7 @@ class PULearnByDoubleWeighting(object):
 
         return probabilistic_predictions
 
-    def predict(self, X, treshold=0.5):
+    def predict(self, X):
         """
         Assign labels to feature vectors based on the estimator's predictions
 
@@ -259,4 +260,4 @@ class PULearnByDoubleWeighting(object):
         if not self.estimator_fitted:
             raise Exception('The estimator must be fitted before calling predict(...).')
 
-        return np.array([1. if p > treshold else -1. for p in self.predict_proba(X)])
+        return self.estimator.predict(X)
