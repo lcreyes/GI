@@ -184,12 +184,14 @@ def roc_curve(clf_results):
     plt.legend(loc="lower right")
 
 
-def roc_curve_cv(clf_results):
+def roc_curve_cv(clf_results, num_folds=6):
     """
     Adapted from http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
     """
     ###############################################################################
     # Run classifier with cross-validation and plot ROC curves
+
+    # TODO (ryan) give filled roc curve bounds instead of loads of lines (option)
 
     y_train = clf_results["y_train"]
     X_train = clf_results["X_train"]
@@ -202,7 +204,7 @@ def roc_curve_cv(clf_results):
 
     # Do an initial kfold on the data- n_folds will be the number of roc curves shown
     # Can be the same from voya_config
-    cv = sklearn.cross_validation.StratifiedKFold(y, n_folds=6)
+    cv = sklearn.cross_validation.StratifiedKFold(y, n_folds=num_folds)
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)
