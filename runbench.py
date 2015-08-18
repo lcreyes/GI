@@ -59,6 +59,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
     default_config = {
         "data_file": None,  # input data
+        "test_df": None,  # instead of data_file, give split data
+        "train_df": None,
+
         "out_path": None,
         "num_folds": 5,
         "test_size": 0.2,
@@ -81,27 +84,32 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         if not os.path.isdir(out_path):
             os.makedirs(out_path)
 
-    voya_logger.info('loading data from: {}'.format(config['data_file']))
-    df = datasetup.load_data(config['data_file'])
 
-    datasetup.scale_dataframe_features(df)
+    # If we are given the test / train sets explicitly
+    test_df = config["test_df"]
+    train_df = config["train_df"]
+    if test_df is not None and train_df is not None:
+        y_test, X_test = datasetup.split_df_labels_features(test_df)
+        y_train, X_train = datasetup.split_df_labels_features(train_df)
+    elif config["datafile"] is not None:  # or load all the data and auto split
+        voya_logger.info('loading data from: {}'.format(config['data_file']))
+        df = datasetup.load_data(config['data_file'])
+        datasetup.scale_dataframe_features(df)
 
-    y, X = datasetup.split_df_labels_features(df)
+        if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
+            voya_logger.info("PU Learning Benchmark")
+            df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
+                                                                 config["pu_rand_samp_frac"])
 
-    if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
-        voya_logger.info("PU Learning Benchmark")
-        df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
-                                                             config["pu_rand_samp_frac"])
+            y_test, X_test = datasetup.split_df_labels_features(df_test)
+            y_train, X_train = datasetup.split_df_labels_features(df_train)
 
-        y_test, X_test = datasetup.split_df_labels_features(df_test)
-        y_train, X_train = datasetup.split_df_labels_features(df_train)
-
-    else:  # input of positive and negative (i.e 1, 0)
-        X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
+        else:  # input of positive and negative (i.e 1, 0)
+            X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
+    else:
+        raise ValueError("You must give either `test_df` and `train_df` OR `data_file` in config")
 
     results_table_rows = {}  # each row is a dict with column_name: value
-
-    skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
     for clf_name, clf_notoptimized in classifiers.iteritems():
         voya_logger.info("Running {}".format(clf_name))
@@ -117,6 +125,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             clf_fitted = clf_notoptimized.fit(X_train, y_train)
 
         else:
+            skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
+
             clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimal_parameters = clf.best_params_
@@ -139,8 +149,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             'X_test': X_test,
             'y_test': y_test,
             'param_grid': param_grid,
-            'X': X,
-            'y': y,
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
