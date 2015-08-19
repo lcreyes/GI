@@ -10,7 +10,7 @@ import sklearn.ensemble
 import pulearning
 
 config = {
-    "data_file": "data/test_Gaussians_formatted.csv",
+    "data_file": "data/test4_Gaussians_formatted.csv",
     "out_path": "output/pu/",
     "num_folds": 2,
     "test_size": 0.2,
@@ -33,10 +33,10 @@ LR_estimator = sklearn.linear_model.LogisticRegression(C=0.4, penalty='l1')
 
 
 classifiers = {
-    'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
+    #'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
     # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
     #                                                   n_jobs=config["num_cores"]),
-    # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
+     'Bagging LR': pulearning.PUBagging(LR_estimator, n_estimators=20, max_samples=0.5),
     # 'SVM_DoubleWeight(E&N2008)': pulearning.SVMDoubleWeight(svc_estimator),
 }
 
@@ -44,6 +44,7 @@ classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
     # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
     'Bagging SVC': None,
-    'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
+    #'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
+    'Bagging LR': None,
     'SVM_DoubleWeight(E&N2008)': None,
 }

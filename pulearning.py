@@ -2,9 +2,21 @@
 """
 
 import logging
+import numbers
+import itertools
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.ensemble.base import _partition_estimators
+import sklearn.cross_validation
+import sklearn.ensemble
+
+from sklearn.utils import check_random_state, check_X_y
+from sklearn.utils.random import sample_without_replacement
+from sklearn.utils.fixes import bincount
+from sklearn.externals.joblib import Parallel, delayed
+
+MAX_INT = np.iinfo(np.int32).max
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -178,7 +190,7 @@ class PULearnByDoubleWeighting(object):
 
       
     def __str__(self):
-        class_string = 'PosOnly(p(s=1|y=1,x) ~= {}, Fitted: {}\n' \
+        class_string = 'DoubleWeight (p(s=1|y=1,x) ~= {}, Fitted: {}\n' \
                        '        Estimator: {}, \n)'.format(self.estimator, self.c, self.estimator_fitted)
         return class_string
 
@@ -261,3 +273,209 @@ class PULearnByDoubleWeighting(object):
             raise Exception('The estimator must be fitted before calling predict(...).')
 
         return self.estimator.predict(X)
+        
+class PUBagging(sklearn.ensemble.BaggingClassifier):
+    """
+    Runs the bagging approach suggested by Mordelet & Vert (2010), namely:
+
+    INPUT: Positive set, unlabeled set, fraction of unlabeled set in bag (K), number of bootstraps (T)
+    for t=1 to T do:
+        Draw a subsample of U with size K*sizeof(U)
+        Train a classifier C_i to discriminate P against U
+    Return 1/T * Sum (C_i)
+
+    """
+                
+    def fit(self, X, y, sample_weight=None):
+        """Build a Bagging ensemble of estimators from the training
+           set (X, y).
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape = [n_samples, n_features]
+            The training input samples. Sparse matrices are accepted only if
+            they are supported by the base estimator.
+        y : array-like, shape = [n_samples]
+            The target values (class labels in classification, real numbers in
+            regression).
+        sample_weight : array-like, shape = [n_samples] or None
+            Sample weights. If None, then samples are equally weighted.
+            Note that this is supported only if the base estimator supports
+            sample weighting.
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+        random_state = check_random_state(self.random_state)
+
+        # Convert data
+        X, y = check_X_y(X, y, ['csr', 'csc', 'coo'])
+
+        # Remap output
+        n_samples, self.n_features_ = X.shape
+        y = self._validate_y(y)
+
+        # Check parameters
+        self._validate_estimator()
+
+        if isinstance(self.max_samples, (numbers.Integral, np.integer)):
+            max_samples = self.max_samples
+        else:  # float
+            max_samples = int(self.max_samples * X.shape[0])
+
+        if not (0 < max_samples <= X.shape[0]):
+            raise ValueError("max_samples must be in (0, n_samples]")
+
+        if isinstance(self.max_features, (numbers.Integral, np.integer)):
+            max_features = self.max_features
+        else:  # float
+            max_features = int(self.max_features * self.n_features_)
+
+        if not (0 < max_features <= self.n_features_):
+            raise ValueError("max_features must be in (0, n_features]")
+
+        if not self.bootstrap and self.oob_score:
+            raise ValueError("Out of bag estimation only available"
+                             " if bootstrap=True")
+
+        # Free allocated memory, if any
+        self.estimators_ = None
+
+        # Parallel loop
+        n_jobs, n_estimators, starts = _partition_estimators(self.n_estimators,
+                                                             self.n_jobs)
+        seeds = random_state.randint(MAX_INT, size=self.n_estimators)
+
+        all_results = Parallel(n_jobs=n_jobs, verbose=self.verbose)(
+            delayed(_parallel_build_estimators)(
+                n_estimators[i],
+                self,
+                X,
+                y,
+                sample_weight,
+                seeds[starts[i]:starts[i + 1]],
+                verbose=self.verbose)
+            for i in range(n_jobs))
+
+        # Reduce
+        self.estimators_ = list(itertools.chain.from_iterable(
+            t[0] for t in all_results))
+        self.estimators_samples_ = list(itertools.chain.from_iterable(
+            t[1] for t in all_results))
+        self.estimators_features_ = list(itertools.chain.from_iterable(
+            t[2] for t in all_results))
+
+        if self.oob_score:
+            self._set_oob_score(X, y)
+
+        return self
+
+def _parallel_build_estimators(n_estimators, ensemble, all_X, all_y, sample_weight,
+                               seeds, verbose):
+    """Private function used to build a batch of estimators within a job."""
+
+    positives = np.where(all_y == 1)[0]
+    unlabeled = np.where(all_y == 0)[0]
+    
+    X_positives = all_X[positives]
+    X_unlabeled = all_X[unlabeled]
+    y_positives = all_y[positives]
+    y_unlabeled = all_y[unlabeled]
+
+    # Retrieve settings
+    n_samples, n_features = X_unlabeled.shape
+    max_samples = ensemble.max_samples
+    max_features = ensemble.max_features
+
+    if (not isinstance(max_samples, (numbers.Integral, np.integer)) and
+            (0.0 < max_samples <= 1.0)):
+        max_samples = int(max_samples * n_samples)
+
+    if (not isinstance(max_features, (numbers.Integral, np.integer)) and
+            (0.0 < max_features <= 1.0)):
+        max_features = int(max_features * n_features)
+
+    bootstrap = ensemble.bootstrap
+    bootstrap_features = ensemble.bootstrap_features
+    
+        #can't currently support sample weights
+    if sample_weight is not None:
+        raise ValueError("Can't currently support sample weight with PUBagging")
+
+    support_sample_weight = False
+    #support_sample_weight = has_fit_parameter(ensemble.base_estimator_,
+     #                                         "sample_weight")
+    #if not support_sample_weight and sample_weight is not None:
+     #   raise ValueError("The base estimator doesn't support sample weight")
+
+    # Build estimators
+    estimators = []
+    estimators_samples = []
+    estimators_features = []
+
+    for i in range(n_estimators):
+        if verbose > 1:
+            print("building estimator %d of %d" % (i + 1, n_estimators))
+
+        random_state = check_random_state(seeds[i])
+        seed = check_random_state(random_state.randint(MAX_INT))
+        estimator = ensemble._make_estimator(append=False)
+
+        try:  # Not all estimator accept a random_state
+            estimator.set_params(random_state=seed)
+        except ValueError:
+            pass
+
+        # Draw features
+        if bootstrap_features:
+            features = random_state.randint(0, n_features, max_features)
+        else:
+            features = sample_without_replacement(n_features,
+                                                  max_features,
+                                                  random_state=random_state)
+
+        # Draw samples, using sample weights, and then fit
+        if support_sample_weight:
+            if sample_weight is None:
+                curr_sample_weight = np.ones((n_samples,))
+            else:
+                curr_sample_weight = sample_weight.copy()
+
+            if bootstrap:
+                indices = random_state.randint(0, n_samples, max_samples)
+                sample_counts = bincount(indices, minlength=n_samples)
+                curr_sample_weight *= sample_counts
+
+            else:
+                not_indices = sample_without_replacement(
+                    n_samples,
+                    n_samples - max_samples,
+                    random_state=random_state)
+
+                curr_sample_weight[not_indices] = 0
+
+            estimator.fit(all_X[:, features], all_y, sample_weight=curr_sample_weight)
+            samples = curr_sample_weight > 0.
+
+        # Draw samples, using a mask, and then fit
+        else:
+            if bootstrap:
+                indices = random_state.randint(0, n_samples, max_samples)
+            else:
+                indices = sample_without_replacement(n_samples,
+                                                     max_samples,
+                                                     random_state=random_state)
+
+            sample_counts = bincount(indices, minlength=n_samples)
+
+            new_X=np.vstack((X_positives, X_unlabeled[indices]))
+            new_y=np.concatenate((y_positives, y_unlabeled[indices]))
+            estimator.fit(new_X[:, features], new_y)
+            samples = sample_counts > 0.
+
+        estimators.append(estimator)
+        estimators_samples.append(samples)
+        estimators_features.append(features)
+
+    return estimators, estimators_samples, estimators_features
+
