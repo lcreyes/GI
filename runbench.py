@@ -91,7 +91,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
     if test_df is not None and train_df is not None:
         y_test, X_test = datasetup.split_df_labels_features(test_df)
         y_train, X_train = datasetup.split_df_labels_features(train_df)
-    elif config["datafile"] is not None:  # or load all the data and auto split
+    elif config["data_file"] is not None:  # or load all the data and auto split
         voya_logger.info('loading data from: {}'.format(config['data_file']))
         df = datasetup.load_data(config['data_file'])
         datasetup.scale_dataframe_features(df)
