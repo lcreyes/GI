@@ -274,7 +274,7 @@ class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
 
         return self.estimator.predict(X)
         
-class PUBagging(sklearn.ensemble.BaggingClassifier):
+class PUBagging(sklearn.ensemble.BaggingClassifier,BaseEstimator, TransformerMixin):
     """
     Runs the bagging approach suggested by Mordelet & Vert (2010), namely:
 
