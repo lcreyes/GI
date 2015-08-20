@@ -16,41 +16,67 @@ from os import system
 
 voya_logger = logging.getLogger('clairvoya')
 
-def tprVSranking_curve(clf_results):
+def prVSranking_curve(clf_results):
 
     y_test = clf_results["y_test"]
     clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
-
+    
     ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob','label'])
     ytuple = ytuple.sort(columns='prob', ascending=False)
  
-    num_positives = np.sum(y_test)
+    num_positives_total = np.sum(y_test)
     num_total = y_test.size
     
-    curve= np.asarray((0., 0.)) #first point is always (0, 0)
+    overall_fraction_positives = float(num_positives_total)/num_total
     
-    perfect_classifier_curve = np.array([[0., 0.], [float(num_positives)/num_total, 1.], [1.,1.]])
-    random_classifier_curve = np.array([[0., 0.], [1., 0.5]])
+    pr_curve= np.asarray((0., 0.)) #first point is always (0, 0)
+    tpr_curve= np.asarray((0., 1.)) #first point is always (0, 1)
+    
+    perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total)/num_total, 1.], [1.,1.]])
+    random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
-    for r in range(y_test.size):
+
+    for r in range(0, y_test.size):
         rankedSet = ytuple.iloc[0:r,:]
-        truePositives = rankedSet[np.logical_and(rankedSet.prob>0.5, rankedSet.label==1)]
-        true_positive_rate = truePositives.shape[0]/num_positives
-        curve = np.vstack((curve, np.asarray((float(r)/num_total, true_positive_rate))))
+        num_truePositives = rankedSet[np.logical_and(rankedSet.prob>0.5, rankedSet.label==1)].shape[0]
+        num_positives_inRank = rankedSet[rankedSet.label>0.5].shape[0]
+        positive_rate = float(num_truePositives)/num_positives_total
+        pr_curve = np.vstack((pr_curve, np.asarray((float(r)/num_total, positive_rate))))
+        if num_positives_inRank > 0. :
+            true_positive_rate = float(num_truePositives)/num_positives_inRank
+            tpr_curve = np.vstack((tpr_curve, np.asarray((float(r)/num_total, true_positive_rate))))
 
     # Plot curve 
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
-    plt.plot(curve[:,0], curve[:,1], label=clf_name)
-    plt.plot(perfect_classifier_curve[:,0], perfect_classifier_curve[:,1], label='Perfect Classifier')
-    plt.plot(random_classifier_curve[:,0], random_classifier_curve[:,1], label='Random Classifier')
-    plt.xlim([0.0, 1.0])
+
+#    plt.subplot(211)
+    plt.plot(perfect_classifier_pr_curve[:,0], perfect_classifier_pr_curve[:,1], label='Perfect Classifier', c='blue')
+    plt.plot(random_classifier_pr_curve[:,0], random_classifier_pr_curve[:,1], label='Random Classifier', c='red')
+    plt.plot(pr_curve[:,0], pr_curve[:,1], label=clf_name, c='black')
+    plt.xlim([0.0, overall_fraction_positives+0.1])
     plt.ylim([0.0, 1.0])
+    plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
+    plt.ylabel('Fracion of true positives found by Classifier')
+    plt.title('{} - Positives Found vs Fraction of data'.format(clf_name))
+    plt.legend(loc="lower right")
+
+#in case we later wanted to plot True positive rate
+"""
+    perfect_classifier_tpr_curve = np.array([[0., 1.],  [1.,1.]])
+    random_classifier_tpr_curve = np.array([[0., 0.5], [1., 0.5]])
+    
+    plt.subplot(212)
+    plt.plot(perfect_classifier_tpr_curve[:,0], perfect_classifier_tpr_curve[:,1], label='Perfect Classifier', c='blue')
+    plt.plot(random_classifier_tpr_curve[:,0], random_classifier_tpr_curve[:,1], label='Random Classifier', c='red')
+    plt.plot(tpr_curve[:,0], tpr_curve[:,1], label=clf_name, c='black')
+    plt.xlim([0.0, overall_fraction_positives+0.1])
+    plt.ylim([0.0, 1.2])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
     plt.ylabel('True Positive Rate')
     plt.title('{} - True Positive Rate vs Fraction of data'.format(clf_name))
-    plt.legend(loc="lower right")
+    plt.legend(loc="lower right")"""
 
 def reliability_curve(clf_results):
     """
@@ -169,7 +195,7 @@ def roc_curve(clf_results):
 
     # Compute ROC curve and ROC area for each class
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
-    roc_auc = sklearn.metrics.auc(fpr, tpr)
+    roc_auc = sklearn.metrics.roc_auc_score(y_test, y_pred)
 
     # Plot of a ROC curve for a specific class
     seaborn.set_style("whitegrid")
