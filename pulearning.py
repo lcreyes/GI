@@ -161,7 +161,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
         return self.estimator.predict(X)
 
 
-class PULearnByDoubleWeighting(object):
+class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
     """
     Runs the second approach described in Elkan & Noto (2008) for training on
     Positive +  Unlabeled (PU) data, namely:
