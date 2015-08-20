@@ -93,7 +93,12 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         y_train, X_train = datasetup.split_df_labels_features(train_df)
     elif config["data_file"] is not None:  # or load all the data and auto split
         voya_logger.info('loading data from: {}'.format(config['data_file']))
-        df = datasetup.load_data(config['data_file'])
+
+        try:
+            df = datasetup.load_data(config['data_file'])
+        except IOError:  # file doesnt exist, try seeing is its a df instead
+            df = config['data_file']
+
         datasetup.scale_dataframe_features(df)
 
         if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
@@ -105,6 +110,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             y_train, X_train = datasetup.split_df_labels_features(df_train)
 
         else:  # input of positive and negative (i.e 1, 0)
+            X, y = datasetup.split_df_labels_features(df)
             X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
     else:
         raise ValueError("You must give either `test_df` and `train_df` OR `data_file` in config")

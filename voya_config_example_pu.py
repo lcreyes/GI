@@ -37,13 +37,13 @@ classifiers = {
     # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
     #                                                   n_jobs=config["num_cores"]),
     # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
-    # 'SVM_DoubleWeight(E&N2008)': pulearning.SVMDoubleWeight(svc_estimator),
+    # 'SVM_DoubleWeight(E&N2008)': pulearning.PULearnByDoubleWeighting(svc_estimator),
 }
 
 classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
-    # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
+    # 'Bagging SVC': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
     'Bagging SVC': None,
-    'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
+    'Bagging LR': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 }
