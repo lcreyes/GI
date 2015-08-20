@@ -24,6 +24,7 @@ config = {
     "pu_rand_samp_frac": False,
     "verbosity": 1,  # console output verbosity 0 = quiet, 1 = info, 2 = debug
     "random_forest_tree_plot": False,
+    "auc_folds": 1,
 }
 
 #### Any custom code to combine new classifiers goes here

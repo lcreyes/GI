@@ -69,7 +69,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "pu_learning": False,
         "pu_rand_samp_frac": False,
         "verbosity": 0,
-        "random_forest_tree_plot": False
+        "random_forest_tree_plot": False,
+        "auc_folds": 1,
     }
 
     default_config.update(config)
@@ -158,7 +159,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
-        benchmarks.all_benchmarks(clf_results, out_path)  # TODO (ryan) split this up now into benchmarks and plots?
+        benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"])  # TODO (ryan) split this up now into benchmarks and plots?
 
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):

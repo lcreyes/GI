@@ -12,6 +12,7 @@ config = {
     "out_path": "output",
     "num_folds": 2,
     "test_size": 0.2,
+    "auc_folds": 1,
 }
 
 # Setup BernoulliRBM Neural net with logistic classifiers

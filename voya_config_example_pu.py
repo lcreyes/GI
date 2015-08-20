@@ -21,6 +21,7 @@ config = {
     "pu_rand_samp_frac": False,
     "verbosity": 1,
     "random_forest_tree_plot": False,
+    "auc_folds": 1,
 }
 
 # best parameters for rbf kernel(according to GridSearch)
