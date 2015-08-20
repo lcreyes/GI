@@ -273,7 +273,8 @@ class PULearnByDoubleWeighting(object):
             raise Exception('The estimator must be fitted before calling predict(...).')
 
         return self.estimator.predict(X)
-        
+
+
 class PUBagging(sklearn.ensemble.BaggingClassifier):
     """
     Runs the bagging approach suggested by Mordelet & Vert (2010), namely:
@@ -470,6 +471,8 @@ def _parallel_build_estimators(n_estimators, ensemble, all_X, all_y, sample_weig
 
             new_X=np.vstack((X_positives, X_unlabeled[indices]))
             new_y=np.concatenate((y_positives, y_unlabeled[indices]))
+            voya_logger.debug('y: {}'.format(new_y))
+
             estimator.fit(new_X[:, features], new_y)
             samples = sample_counts > 0.
 

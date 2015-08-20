@@ -191,6 +191,9 @@ def set_verbosity_level(level):
     console_handler.setLevel(levels[level])
     voya_logger.setLevel(levels[level])
     voya_logger.addHandler(console_handler)
+    fh = logging.FileHandler('clairvoya.log')
+    fh.setLevel(levels[level])
+    voya_logger.addHandler(fh)
 
     if level == 2:
         formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s', "%H:%M:%S")
