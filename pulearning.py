@@ -161,7 +161,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
         return self.estimator.predict(X)
 
 
-class PULearnByDoubleWeighting(object):
+class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
     """
     Runs the second approach described in Elkan & Noto (2008) for training on
     Positive +  Unlabeled (PU) data, namely:
@@ -274,7 +274,7 @@ class PULearnByDoubleWeighting(object):
 
         return self.estimator.predict(X)
         
-class PUBagging(sklearn.ensemble.BaggingClassifier):
+class PUBagging(sklearn.ensemble.BaggingClassifier,BaseEstimator, TransformerMixin):
     """
     Runs the bagging approach suggested by Mordelet & Vert (2010), namely:
 
