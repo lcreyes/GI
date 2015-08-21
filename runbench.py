@@ -69,7 +69,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "pu_learning": False,
         "pu_rand_samp_frac": False,
         "verbosity": 0,
-        "random_forest_tree_plot": False
+        "random_forest_tree_plot": False,
+        "auc_folds": 1,
     }
 
     default_config.update(config)
@@ -93,7 +94,12 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         y_train, X_train = datasetup.split_df_labels_features(train_df)
     elif config["data_file"] is not None:  # or load all the data and auto split
         voya_logger.info('loading data from: {}'.format(config['data_file']))
-        df = datasetup.load_data(config['data_file'])
+
+        try:
+            df = datasetup.load_data(config['data_file'])
+        except IOError:  # file doesnt exist, try seeing is its a df instead
+            df = config['data_file']
+
         datasetup.scale_dataframe_features(df)
 
         if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
@@ -105,7 +111,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             y_train, X_train = datasetup.split_df_labels_features(df_train)
 
         else:  # input of positive and negative (i.e 1, 0)
-            y, X = datasetup.split_df_labels_features(df)
+
+            X, y = datasetup.split_df_labels_features(df)
             X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
     else:
         raise ValueError("You must give either `test_df` and `train_df` OR `data_file` in config")
@@ -153,7 +160,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
-        benchmarks.all_benchmarks(clf_results, out_path)  # TODO (ryan) split this up now into benchmarks and plots?
+        benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"])  # TODO (ryan) split this up now into benchmarks and plots?
 
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
@@ -186,6 +193,9 @@ def set_verbosity_level(level):
     console_handler.setLevel(levels[level])
     voya_logger.setLevel(levels[level])
     voya_logger.addHandler(console_handler)
+    fh = logging.FileHandler('clairvoya.log')
+    fh.setLevel(levels[level])
+    voya_logger.addHandler(fh)
 
     if level == 2:
         formatter = logging.Formatter('%(asctime)s:%(levelname)s: %(message)s', "%H:%M:%S")

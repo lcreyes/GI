@@ -9,11 +9,13 @@ import pandas
 import sklearn.metrics
 
 import voya_plotter
+import numpy as np
+
 
 voya_logger = logging.getLogger('clairvoya')
 
 
-def all_benchmarks(clf_results, out_path):
+def all_benchmarks(clf_results, out_path, auc_folds=1):
     """ Runs all the benchmarks for given clf result saving the output to out_path
 
     Current classifier structure for plots is make a function in voya_plotter and call it here currently plots are
@@ -33,10 +35,19 @@ def all_benchmarks(clf_results, out_path):
     clf = clf_results["clf"]
     X_test = clf_results["X_test"]
 
+    folds = 4
 
-    scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=4, scoring='roc_auc')
+    if auc_folds > 1:
+        scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=folds, scoring='roc_auc')
+        clf_results['pretty_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(folds))
+        clf_results['auc_score'] = scores.mean()
+        clf_results['auc_std_err'] = scores.std/np.sqrt(folds)
+    else:
+        clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
 
-    clf_results['auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std())
+
+
+
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
     if out_path is not None:  # output plots to out_path

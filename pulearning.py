@@ -110,8 +110,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
         hold_out_size = np.ceil(len(positives) * self.hold_out_ratio)
 
         if len(positives) <= hold_out_size:
-            raise (
-            'Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
+            raise ValueError('Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
 
         np.random.shuffle(positives)
         hold_out = positives[:hold_out_size]
@@ -273,7 +272,8 @@ class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
             raise Exception('The estimator must be fitted before calling predict(...).')
 
         return self.estimator.predict(X)
-        
+
+
 class PUBagging(sklearn.ensemble.BaggingClassifier,BaseEstimator, TransformerMixin):
     """
     Runs the bagging approach suggested by Mordelet & Vert (2010), namely:
@@ -470,6 +470,8 @@ def _parallel_build_estimators(n_estimators, ensemble, all_X, all_y, sample_weig
 
             new_X=np.vstack((X_positives, X_unlabeled[indices]))
             new_y=np.concatenate((y_positives, y_unlabeled[indices]))
+            voya_logger.debug('y: {}'.format(new_y))
+
             estimator.fit(new_X[:, features], new_y)
             samples = sample_counts > 0.
 

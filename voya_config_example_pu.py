@@ -21,6 +21,7 @@ config = {
     "pu_rand_samp_frac": False,
     "verbosity": 1,
     "random_forest_tree_plot": False,
+    "auc_folds": 1,
 }
 
 # best parameters for rbf kernel(according to GridSearch)
@@ -36,15 +37,15 @@ classifiers = {
     #'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
     # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
     #                                                   n_jobs=config["num_cores"]),
+    # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
+    # 'SVM_DoubleWeight(E&N2008)': pulearning.PULearnByDoubleWeighting(svc_estimator),
      'Bagging LR': pulearning.PUBagging(LR_estimator, n_estimators=20, max_samples=0.5),
     # 'SVM_DoubleWeight(E&N2008)': pulearning.SVMDoubleWeight(svc_estimator),
 }
 
 classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
-    # 'Bagging SVC': {'n_estimators': [100, 200, 300], 'max_samples': [0.1, 0.3, 0.5, 0.7]},
-    'Bagging SVC': None,
-    #'Bagging LR': {'n_estimators': [100], 'max_samples': [0.1, 0.3, 0.7]},
-    'Bagging LR': None,
+    'Bagging SVC': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
+    'Bagging LR': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 }
