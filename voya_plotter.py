@@ -7,12 +7,13 @@ import sklearn.calibration
 import sklearn.preprocessing
 import sklearn.metrics
 import sklearn.decomposition
+import puLearning.semisup_metrics
+import optunity.metrics
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
 from sklearn.tree import export_graphviz
 from os import system
-
 
 voya_logger = logging.getLogger('clairvoya')
 
@@ -21,18 +22,18 @@ def prVSranking_curve(clf_results):
     y_test = clf_results["y_test"]
     clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
-    
+
     ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob','label'])
     ytuple = ytuple.sort(columns='prob', ascending=False)
- 
+
     num_positives_total = np.sum(y_test)
     num_total = y_test.size
-    
+
     overall_fraction_positives = float(num_positives_total)/num_total
-    
+
     pr_curve= np.asarray((0., 0.)) #first point is always (0, 0)
     tpr_curve= np.asarray((0., 1.)) #first point is always (0, 1)
-    
+
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total)/num_total, 1.], [1.,1.]])
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
@@ -47,7 +48,7 @@ def prVSranking_curve(clf_results):
             true_positive_rate = float(num_truePositives)/num_positives_inRank
             tpr_curve = np.vstack((tpr_curve, np.asarray((float(r)/num_total, true_positive_rate))))
 
-    # Plot curve 
+    # Plot curve
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
 
@@ -66,7 +67,7 @@ def prVSranking_curve(clf_results):
 """
     perfect_classifier_tpr_curve = np.array([[0., 1.],  [1.,1.]])
     random_classifier_tpr_curve = np.array([[0., 0.5], [1., 0.5]])
-    
+
     plt.subplot(212)
     plt.plot(perfect_classifier_tpr_curve[:,0], perfect_classifier_tpr_curve[:,1], label='Perfect Classifier', c='blue')
     plt.plot(random_classifier_tpr_curve[:,0], random_classifier_tpr_curve[:,1], label='Random Classifier', c='red')
@@ -77,6 +78,59 @@ def prVSranking_curve(clf_results):
     plt.ylabel('True Positive Rate')
     plt.title('{} - True Positive Rate vs Fraction of data'.format(clf_name))
     plt.legend(loc="lower right")"""
+
+
+def roc_pu(clf_results):
+
+    nboot = 2000
+    ci_width = 0.95
+    y_test = clf_results["y_test"]
+    clf_name = clf_results["clf_name"]
+    y_pred = clf_results["y_pred"]
+
+
+    #Assumptions! guesstimate number of positives and negatives in unlabeled
+    #beta corresponds to the assumed fraction of positives in the unlabeled
+    beta = 0.1 #float(num_positives_total)/num_total
+    true_pfrac = beta
+    num_pos = sum(y_test)
+    num_neg = 0
+    num_unl = len(y_test) - num_pos
+    num_neg_in_unl = int(round(num_unl * (1 - true_pfrac)))
+    num_pos_in_unl = int(round(num_unl * true_pfrac))
+    labels = [None]*len(y_test)
+    for i in range(len(labels)):
+        if(y_test[i]==1): labels[i]=True
+    #labels = [True] * num_pos + [None] * num_pos_in_unl + [False] * num_neg + [None] * num_neg_in_unl
+    #true_labels = [True] * (num_pos + num_pos_in_unl) + [False] * (num_neg + num_neg_in_unl)
+    #decision_values = generate_pos_class_decvals(num_pos + num_pos_in_unl) + generate_neg_class_decvals(num_neg + num_neg_in_unl)
+
+    num_positives_total = np.sum(y_test)
+    num_total = len(y_test) #y_test.size
+    #Computing ROC bounds, curves
+    roc_bounds = puLearning.semisup_metrics.roc_bounds(labels, y_pred,
+            beta=beta, ci_fun=puLearning.semisup_metrics.bootstrap_ecdf_bounds)
+
+    fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
+    #auc_true, roc_true = optunity.metrics.roc_auc(true_labels, y_pred, return_curve=True)
+    auc_neg, curve_neg = optunity.metrics.roc_auc(labels, y_pred, return_curve=True)
+    #auc_lower = puLearning.semisup_metrics.auc(roc_bounds.lower)
+    #auc_upper = puLearning.semisup_metrics.auc(roc_bounds.upper)
+    #print('+ Plotting ROC curves.')
+    seaborn.set_style("whitegrid")
+    plt.figure(figsize=(7, 7))
+
+    #plt.plot(fpr, tpr, color='magenta')
+    #plt.plot(*zip(*roc_true), color='black', label="beta = %3.1f" %beta)
+    plt.plot(*zip(*roc_bounds.lower), color='blue', label="lower bound")
+    plt.plot(*zip(*roc_bounds.upper), color='red', label="upper bound")
+    plt.plot(*zip(*curve_neg), color='black', ls=':', label="beta=0")
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('%s - PU ROC Bounds assuming beta=%3.1f (Claesen+2015)' %(clf_name, beta))
+    plt.legend(loc="lower right")
+
 
 def reliability_curve(clf_results):
     """
@@ -320,7 +374,7 @@ def plot_boundary(clf_results, runPCA=True):
     cbar = plt.colorbar()
     #cbar.ax.set_ylabel('probability threshold')
     cs1 = plt.contour(xx, yy, Z, colors='k', alpha=0.5, levels=[0.,0.5,1.])
-    
+
     try:
         plt.clabel(cs1, fmt = '%2.1f', colors = 'k', fontsize=14, manual=[(0,1)], inline=1)
     except UnboundLocalError:
@@ -353,6 +407,3 @@ def plot_trees(clf_fitted,feature_names,out_path):
             system(dot2png)
             rmdot="rm " + out_path + subdir + "/*.dot"
     system(rmdot)
-
-
-

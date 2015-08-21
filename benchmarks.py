@@ -35,7 +35,7 @@ def all_benchmarks(clf_results, out_path):
 
 
     scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=4, scoring='roc_auc')
-    
+
     clf_results['auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std())
     clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
 
@@ -63,6 +63,10 @@ def all_benchmarks(clf_results, out_path):
         voya_logger.debug('Generating prVSranking curve plot')
         voya_plotter.prVSranking_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'prVsRank__{}'.format(clf_name)), bbox_inches='tight')
+
+        voya_logger.debug('Generating PU ROC curve plot')
+        voya_plotter.roc_pu(clf_results)
+        plt.savefig(os.path.join(out_path, 'roc_pu__{}'.format(clf_name)), bbox_inches='tight')
 
         plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
