@@ -111,6 +111,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             y_train, X_train = datasetup.split_df_labels_features(df_train)
 
         else:  # input of positive and negative (i.e 1, 0)
+
             X, y = datasetup.split_df_labels_features(df)
             X_train, y_train, X_test, y_test = datasetup.get_stratifed_data(y, X, config['test_size'])
     else:
@@ -143,9 +144,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         voya_logger.debug('X = {}'.format(clf_fitted))
 
         y_pred = clf_fitted.predict_proba(X_test)[:, 1]
-        
+
         y_pred_label = clf_fitted.predict(X_test)
-        
+
         clf_results.update({
             'y_pred': y_pred,
             'y_pred_label' : y_pred_label,
