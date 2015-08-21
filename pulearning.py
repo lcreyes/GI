@@ -110,8 +110,7 @@ class PosOnly(BaseEstimator, TransformerMixin):
         hold_out_size = np.ceil(len(positives) * self.hold_out_ratio)
 
         if len(positives) <= hold_out_size:
-            raise (
-            'Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
+            raise ValueError('Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
 
         np.random.shuffle(positives)
         hold_out = positives[:hold_out_size]
