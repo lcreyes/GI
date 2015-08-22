@@ -7,8 +7,8 @@ import sklearn.calibration
 import sklearn.preprocessing
 import sklearn.metrics
 import sklearn.decomposition
-import puLearning.semisup_metrics
-import optunity.metrics
+# import puLearning.semisup_metrics
+# import optunity.metrics
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
