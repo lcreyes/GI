@@ -1,21 +1,22 @@
 import logging
-import os.path
-import pandas
+from os import system
 
+import pandas
 import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
 import sklearn.metrics
 import sklearn.decomposition
-# import puLearning.semisup_metrics
-# import optunity.metrics
+import optunity.metrics
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import seaborn
 from sklearn.tree import export_graphviz
-from os import system
+
+import semisup_metrics
 
 voya_logger = logging.getLogger('clairvoya')
+
 
 def prVSranking_curve(clf_results):
 
@@ -108,14 +109,14 @@ def roc_pu(clf_results):
     num_positives_total = np.sum(y_test)
     num_total = len(y_test) #y_test.size
     #Computing ROC bounds, curves
-    roc_bounds = puLearning.semisup_metrics.roc_bounds(labels, y_pred,
-            beta=beta, ci_fun=puLearning.semisup_metrics.bootstrap_ecdf_bounds)
+    roc_bounds = semisup_metrics.roc_bounds(labels, y_pred,
+            beta=beta, ci_fun=semisup_metrics.bootstrap_ecdf_bounds)
 
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
     #auc_true, roc_true = optunity.metrics.roc_auc(true_labels, y_pred, return_curve=True)
     auc_neg, curve_neg = optunity.metrics.roc_auc(labels, y_pred, return_curve=True)
-    #auc_lower = puLearning.semisup_metrics.auc(roc_bounds.lower)
-    #auc_upper = puLearning.semisup_metrics.auc(roc_bounds.upper)
+    #auc_lower = semisup_metrics.auc(roc_bounds.lower)
+    #auc_upper = semisup_metrics.auc(roc_bounds.upper)
     #print('+ Plotting ROC curves.')
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
