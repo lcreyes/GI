@@ -118,9 +118,7 @@ def roc_pu(clf_results):
     hold_out_predictions = clf.predict_proba(X_hold_out)
     hold_out_predictions = hold_out_predictions[:, 1]
     c = np.mean(hold_out_predictions)
-    print "result for c= %f" %c
     beta = (sum(y_test)/(len(y_test) - sum(y_test)))*(1.-c)/c
-    print "potential result for beta:%f" %beta
     ##############################
 
     true_pfrac = beta
