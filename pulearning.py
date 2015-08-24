@@ -7,9 +7,11 @@ import itertools
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_selection.from_model import _LearntSelectorMixin
 from sklearn.ensemble.base import _partition_estimators
 import sklearn.cross_validation
 import sklearn.ensemble
+import sklearn.svm
 
 from sklearn.utils import check_random_state, check_X_y
 from sklearn.utils.random import sample_without_replacement
@@ -480,4 +482,11 @@ def _parallel_build_estimators(n_estimators, ensemble, all_X, all_y, sample_weig
         estimators_features.append(features)
 
     return estimators, estimators_samples, estimators_features
+
+class SVC_mod(sklearn.svm.SVC, BaseEstimator, _LearntSelectorMixin):
+    """
+    A hacky way of getting SVC to support fit_transform?
+    """
+    
+
 
