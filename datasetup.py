@@ -30,6 +30,34 @@ def load_data(filename):
     return df
 
 
+def downsample_pu_df(df, unlab_to_pos_ratio):
+    """ Takes input of the universe with P 0 N -1 and U 0 data and randomly samples the universe
+
+    :param df: input data frame with positives, negatives and unlabelled data
+    :param unlab_to_pos_ratio: how much unlabelled to include as a propotion of positives
+
+    :return: df containing a random sample of unlablled at the ratio specified
+    """
+    num_labels = df.label.value_counts()  # numbers in each group
+    num_pos = num_labels[1]
+    num_unl = num_labels[0]
+
+    num_required_unlab = int(num_pos * unlab_to_pos_ratio)
+    assert(num_required_unlab <= num_unl), 'Operation would require {} unlabelled, we have {}'.format(num_required_unlab,
+                                                                                                      num_unl)
+
+    df_pos_neg = df[df['label'] != 0]
+    df_unlab = df[df['label'] == 0]
+
+
+    df_unlab.reindex(np.random.permutation(df_unlab.index))
+    downsampled_df = df_pos_neg.append(df_unlab[:num_required_unlab], ignore_index=True)
+
+    voya_logger.info('Downsampled from {} to {} unlabelled'.format(num_unl, num_required_unlab))
+
+    return downsampled_df
+
+
 def split_df_labels_features(df):
     """ splits a dataframe into y and X provided it conforms to the required input colums of id, labels, features...
     """
@@ -86,8 +114,8 @@ def split_test_train_df_pu(df, test_size, pu_random_sampling_frac=False):
     df_train = positives_train.append(unlabeled, ignore_index=True)
     df_test = positives_test.append(negatives, ignore_index=True)
 
-    assert set(df_train['label'].unique()) == set((1, 0))
-    assert set(df_test['label'].unique()) == set((1, -1))
+    assert set(df_train['label'].unique()) == set((1, 0)), df_train.label.value_counts()
+    assert set(df_test['label'].unique()) == set((1, -1)), df_test.label.value_counts()
 
     # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
     df_test.loc[df_test.label == -1, 'label'] = 0

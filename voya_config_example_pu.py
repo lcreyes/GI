@@ -11,7 +11,7 @@ import sklearn.pipeline
 import pulearning
 
 config = {
-    "data_file": "data/test4_Gaussians_formatted.csv",
+    "data_file": "data/test1_uni_f.csv",
     "out_path": "output/pu/",
     "num_folds": 2,
     "test_size": 0.2,
@@ -23,6 +23,7 @@ config = {
     "verbosity": 1,
     "random_forest_tree_plot": False,
     "auc_folds": 1,
+    'pos_to_unlabelled_ratio': 2,  # If false, uses all data, if a number will sample a random proportion of unlabeled
 }
 
 # best parameters for rbf kernel(according to GridSearch)
@@ -50,8 +51,8 @@ classifiers = {
     #'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
     # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
     #                                                   n_jobs=config["num_cores"]),
-    # 'RF_Bagging': RFBagging,
-    'RFDoubleWeight': pulearning.PULearnByDoubleWeighting(rf_estimator),
+    'RF_Bagging': RFBagging,
+    # 'RFDoubleWeight': pulearning.PULearnByDoubleWeighting(rf_estimator),
     # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
     # 'SVM_DoubleWeight(E&N2008)': pulearning.PULearnByDoubleWeighting(svc_estimator),
     #  'Bagging LR': pulearning.PUBagging(LR_estimator, n_estimators=20, max_samples=0.5),
@@ -60,8 +61,8 @@ classifiers = {
 
 classifiers_gridparameters = {
     'PosOnly(E&N2008)': None,
-    'RF_DoubleWeight(E&N2008)': {"rf__n_estimators": [10, 30, 50, 70, 100], 'rf__max_depth': [1, 2, 3, 4, 5, 7, 10]},
-    'RF_Bagging': {'po__n_estimators': [30, 100], 'po__max_samples': [0.1, 0.3, 0.7, 1.0],
+    'RF_DoubleWeight(E&N2008)': {"rf__n_estimators": [70], 'rf__max_depth': [7]},
+    'RF_Bagging': {'po__n_estimators': [100], 'po__max_samples': [0.01, 0.03, 0.05, 0.1, 0.3, 0.5],
                    "rf__n_estimators": [10, 30, 50, 70, 100], 'rf__max_depth': [1, 2, 3, 4, 5, 7, 10]},
     'Bagging SVC': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
     'Bagging LR': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},

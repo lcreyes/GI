@@ -71,6 +71,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "verbosity": 0,
         "random_forest_tree_plot": False,
         "auc_folds": 1,
+        'pos_to_unlabelled_ratio': False,
     }
 
     default_config.update(config)
@@ -100,10 +101,15 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         except IOError:  # file doesnt exist, try seeing is its a df instead
             df = config['data_file']
 
+        voya_logger.info("Input data labels \n{}".format(df.label.value_counts()))
+
         datasetup.scale_dataframe_features(df)
 
         if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
-            voya_logger.info("PU Learning Benchmark")
+            voya_logger.info("PU Learning Mode On")
+            if config["pos_to_unlabelled_ratio"]:
+                df = datasetup.downsample_pu_df(df, config["pos_to_unlabelled_ratio"])
+
             df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
                                                                  config["pu_rand_samp_frac"])
 
@@ -136,7 +142,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
             clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
-                               n_jobs=config["num_cores"])
+                               )
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimal_parameters = clf.best_params_
             clf_results['clf_optimal_parameters'] = clf_optimal_parameters
