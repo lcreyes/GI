@@ -85,18 +85,43 @@ def roc_pu(clf_results):
 
     nboot = 2000
     ci_width = 0.95
+    X = clf_results["X_train"]
+    y = clf_results["y_train"]
     y_test = clf_results["y_test"]
     clf_name = clf_results["clf_name"]
+    clf = clf_results["clf"]
     y_pred = clf_results["y_pred"]
 
-
-    #Assumptions! guesstimate number of positives and negatives in unlabeled
-    #beta corresponds to the assumed fraction of positives in the unlabeled
-    beta = 0.1 #float(num_positives_total)/num_total
-    true_pfrac = beta
     num_pos = sum(y_test)
     num_neg = 0
     num_unl = len(y_test) - num_pos
+
+    ##############################
+    #Estimate "beta", the fraction of positives among the unlabeled.
+    #Below we use the method from Elkan & Noto to estimate p(s=1|y=1) = num_pos_labeled/total_pos
+    #From here it's simple to determine beta = num_pos_unlabeled/tot_unlabeled
+    hold_out_ratio = 0.1    #For now, use default value from E&N method
+    positives = np.where(y == 1.)[0]
+    hold_out_size = np.ceil(len(positives) * hold_out_ratio)
+
+    if len(positives) <= hold_out_size:
+        raise ValueError('Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
+
+    np.random.shuffle(positives)
+    hold_out = positives[:hold_out_size]
+    X_hold_out = X[hold_out]
+    X = np.delete(X, hold_out, 0)
+    y = np.delete(y, hold_out)
+
+    clf.fit(X, y)
+
+    hold_out_predictions = clf.predict_proba(X_hold_out)
+    hold_out_predictions = hold_out_predictions[:, 1]
+    c = np.mean(hold_out_predictions)
+    beta = (sum(y_test)/(len(y_test) - sum(y_test)))*(1.-c)/c
+    ##############################
+
+    true_pfrac = beta
     num_neg_in_unl = int(round(num_unl * (1 - true_pfrac)))
     num_pos_in_unl = int(round(num_unl * true_pfrac))
     labels = [None]*len(y_test)
@@ -129,7 +154,7 @@ def roc_pu(clf_results):
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('%s - PU ROC Bounds assuming beta=%3.1f (Claesen+2015)' %(clf_name, beta))
+    plt.title('%s - PU ROC Bounds with beta=%5.3f (Claesen+2015)' %(clf_name, beta))
     plt.legend(loc="lower right")
 
 
