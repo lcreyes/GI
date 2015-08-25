@@ -185,7 +185,7 @@ class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
         self.positives = []
         self.unlabeled = []
 
-        self.c = 1.0  # c value from paper = p(s=1|y=1)
+        self.c = 1.0  # initialisation value from paper = p(s=1|y=1)
 
         self.estimator_fitted = False
 
@@ -206,15 +206,13 @@ class PULearnByDoubleWeighting(BaseEstimator, TransformerMixin):
         unlabeled_probabilities = self.estimator.predict_proba(X[self.unlabeled])[:, 1]
 
         # c value from paper = p(s=1|y=1), three possible estimators: e1, e2, e3
-        # TODO (ryan) allow the setting of c from init? for gridsearching?
         e1 = np.mean(positive_probabilities)
-        e2 = np.sum(positive_probabilities) / (np.sum(positive_probabilities) + np.sum(unlabeled_probabilities))
-        e3 = np.max(positive_probabilities)
+        # e2 = np.sum(positive_probabilities) / (np.sum(positive_probabilities) + np.sum(unlabeled_probabilities))
+        # e3 = np.max(positive_probabilities)
 
         self.c = e1
 
         return (1 - self.c) / self.c * unlabeled_probabilities / (1.0 - unlabeled_probabilities)
-
         
     def fit(self, X, y):
 
