@@ -11,6 +11,7 @@ import sklearn.pipeline
 import pulearning
 
 config = {
+    'voya_mode': 'bench',
     "data_file": "data/test1_uni_f.csv",
     "out_path": "output/pu/",
     "num_folds": 2,
@@ -19,11 +20,10 @@ config = {
     "num_cores": -1,  # -1 means num_cores available
     # if True and pu_learning=true will randomly sample this proportion of unlabelled to be considered negative
     # otherwise we will use all the unlabelled data to train
-    "pu_rand_samp_frac": False,
     "verbosity": 1,
     "random_forest_tree_plot": False,
     "auc_folds": 1,
-    'pos_to_unlabelled_ratio': 2,  # If false, uses all data, if a number will sample a random proportion of unlabeled
+    'u_to_p_ratio': 2,  # If false, uses all data, if a number will sample a random proportion of unlabeled
 }
 
 # best parameters for rbf kernel(according to GridSearch)

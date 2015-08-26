@@ -40,6 +40,7 @@ Syntax:
 import os
 import importlib
 import logging
+import csv
 
 from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
@@ -71,7 +72,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "verbosity": 0,
         "random_forest_tree_plot": False,
         "auc_folds": 1,
-        'pos_to_unlabelled_ratio': False,
+        'u_to_p_ratio': False,
     }
 
     default_config.update(config)
@@ -107,11 +108,11 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
             voya_logger.info("PU Learning Mode On")
-            if config["pos_to_unlabelled_ratio"]:
-                df = datasetup.downsample_pu_df(df, config["pos_to_unlabelled_ratio"])
 
-            df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],
-                                                                 config["pu_rand_samp_frac"])
+            if config["u_to_p_ratio"]:
+                df = datasetup.downsample_pu_df(df, config["u_to_p_ratio"])
+
+            df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],)
 
             y_test, X_test = datasetup.split_df_labels_features(df_test)
             y_train, X_train = datasetup.split_df_labels_features(df_train)
@@ -141,8 +142,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         else:
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
-                               )
+
+            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
+
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimal_parameters = clf.best_params_
             clf_results['clf_optimal_parameters'] = clf_optimal_parameters
@@ -156,7 +158,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         clf_results.update({
             'y_pred': y_pred,
-            'y_pred_label' : y_pred_label,
+            'y_pred_label': y_pred_label,
             'clf': clf_fitted,
             'clf_notoptimized': clf_notoptimized,
             'X_train': X_train,
@@ -167,22 +169,26 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
-        benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"])  # TODO (ryan) split this up now into benchmarks and plots?
+        benchmarks.all_benchmarks(clf_results, out_path,
+                                  config["auc_folds"])  # TODO (ryan) split this up now into benchmarks and plots?
 
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')
                 # TODO (ryan) weve hardcoded '2' where the feature start several times, export to var?
-                feature_names = [colname.replace('url/tech/', '').replace('cid/tech/', '') for colname in df.columns[2:]]
-                voya_plotter.plot_trees(clf_results['clf'],feature_names)
+                feature_names = [colname.replace('url/tech/', '').replace('cid/tech/', '') for colname in
+                                 df.columns[2:]]
+                voya_plotter.plot_trees(clf_results['clf'], feature_names)
 
         results_table_rows[clf_name] = clf_results
 
     voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
-    voya_logger.info("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train, len(y_train)-num_positives_y_train))
+    voya_logger.info("Training: positives = {}, negatives/unlabelled={}".format(num_positives_y_train,
+                                                                                len(y_train) - num_positives_y_train))
     num_positives_y_test = y_test.sum()
-    voya_logger.info("Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test)-num_positives_y_test))
+    voya_logger.info(
+        "Testing: positives = {}, negatives={}".format(num_positives_y_test, len(y_test) - num_positives_y_test))
 
     results_table = benchmarks.results_dict_to_data_frame(results_table_rows)
     voya_logger.info('\n{}'.format(results_table))
@@ -211,6 +217,83 @@ def set_verbosity_level(level):
     console_handler.setFormatter(formatter)
 
 
+def run_search_benchmark(config, classifiers, classifiers_gridparameters):
+    """ This works like run_bench except it calls runbench multiple times varying the fraction of unlabelled in the
+    sample.
+
+    Currently PU learning only, varies the fraction of unlabelled in the classifier as a function of positive
+
+    Search parameters are set in the config dictionary. See the code for required config (in addition to that in runbench).
+
+    :param config:
+    :param classifiers:
+    :param classifiers_gridparameters:
+    :return:
+    """
+
+    default_config = {
+        "data_file": None,  # input data
+        "test_df": None,  # instead of data_file, give split data
+        "train_df": None,
+
+        "out_path": None,
+        "num_folds": 5,
+        "test_size": 0.2,
+        "num_cores": 1,
+        "pu_learning": False,
+        "pu_rand_samp_frac": False,
+        "verbosity": 0,
+        "random_forest_tree_plot": False,
+        "auc_folds": 1,
+        'u_to_p_ratio': False,
+
+        'voya_mode': 'pusearch',
+        'search_results_file': '',  # csv file that records the results of each run
+        'soft_search_run': True,  #  if True builds on the previous results, if false overwrites the results file
+        'search_range': (0.5, 1, 2),  # range of values to run over
+        'runs_per_search': 3  # number of times to run the search per parameter per classifier
+    }
+
+    default_config.update(config)
+    config = default_config
+
+    save_file = config['search_results_file']
+    search_range = config['search_range']
+    runs_per_search = config['runs_per_search']
+
+    voya_logger.info('Starting search benchmark')
+
+    if not os.path.exists(save_file) or not config['soft_search_run']:
+        with open(save_file, 'wb') as f:
+            f.write('clf,auc,gamma\n')
+
+    auc_results = {clf_name: [] for clf_name in classifiers.keys()}
+    for gamma_num, gamma in enumerate(search_range):  # gamma is a single value in the search range
+        voya_logger.info('Running classifiers for gamma={} ({}/{})'.format(gamma, gamma_num + 1, len(search_range)))
+
+        run_results = {clf_name: [] for clf_name in classifiers.keys()}  # initialise result dict
+        for i in xrange(runs_per_search):
+            config.update({"u_to_p_ratio": gamma})
+
+            results_dict = run_benchmark(config, classifiers, classifiers_gridparameters)
+
+            # Output
+            csv_output = []
+            for clf_name in classifiers.keys():
+                csv_output.append((clf_name, results_dict[clf_name]['auc_score'], gamma))
+
+            with open(save_file, 'ab') as f:
+                csv_f = csv.writer(f)
+                csv_f.writerows(csv_output)
+
+        for clf_name in classifiers.keys():
+            auc_results[clf_name].append(run_results[clf_name])
+
+
+class VoyaConfigError(Exception):
+    pass
+
+
 if __name__ == '__main__':
     arguments = docopt.docopt(__doc__)
 
@@ -226,4 +309,15 @@ if __name__ == '__main__':
     if arguments["-v"] is not None:  # overwrite config verbosity
         voya_config.config["verbosity"] = int(arguments["-v"])
 
-    results = run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
+    try:
+        voya_mode = voya_config.config['voya_mode']
+    except KeyError:
+        raise VoyaConfigError('voya_mode undefined in config, must be "bench" or "pusearch"')
+
+    if voya_mode == 'bench':
+        results = run_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
+    elif voya_mode == 'pusearch':
+        results = run_search_benchmark(voya_config.config, voya_config.classifiers, voya_config.classifiers_gridparameters)
+    else:
+        raise VoyaConfigError('config must define voya_mode as "bench" or "pusearch" got {}'
+                              ''.format(voya_config.config['voya_mode']))

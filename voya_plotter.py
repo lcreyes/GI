@@ -17,6 +17,12 @@ import semisup_metrics
 
 voya_logger = logging.getLogger('clairvoya')
 
+try:
+    import optunity.metrics
+except ImportError:
+    voya_logger.info('optunity not installed, disabled roc_pu plot')
+
+
 
 def prVSranking_curve(clf_results):
 

@@ -5,3 +5,8 @@ background_url_tech_features.csv
 data
 notebook/.ipynb_checkpoints
 config/
+search_results.csv
+clairvoya.log
+notebook/result_data
+voya_notebook.log
+*.png

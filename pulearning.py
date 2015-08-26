@@ -470,7 +470,6 @@ def _parallel_build_estimators(n_estimators, ensemble, all_X, all_y, sample_weig
 
             new_X=np.vstack((X_positives, X_unlabeled[indices]))
             new_y=np.concatenate((y_positives, y_unlabeled[indices]))
-            voya_logger.debug('y: {}'.format(new_y))
 
             estimator.fit(new_X[:, features], new_y)
             samples = sample_counts > 0.
