@@ -3,11 +3,17 @@
 # After review, everything will be made publicly available under a BSD license.
 
 import numpy as np
-import optunity
 import operator as op
 import math
 import collections
 import array
+
+
+try:
+    import optunity.metrics
+except ImportError:
+    pass
+
 
 _lb_ub = collections.namedtuple("lb_ub", ["lower", "upper"])
 
