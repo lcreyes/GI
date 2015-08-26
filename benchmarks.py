@@ -11,8 +11,14 @@ import sklearn.metrics
 import voya_plotter
 import numpy as np
 
-
 voya_logger = logging.getLogger('clairvoya')
+
+try:
+    import optunity.metrics
+    roc_pu_enabled = True
+except ImportError:
+    voya_logger.info('optunity not installed, disabled roc_pu plot')
+    roc_pu_enabled = False
 
 
 def all_benchmarks(clf_results, out_path, auc_folds=1):
@@ -75,9 +81,10 @@ def all_benchmarks(clf_results, out_path, auc_folds=1):
         voya_plotter.prVSranking_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'prVsRank__{}'.format(clf_name)), bbox_inches='tight')
 
-        voya_logger.debug('Generating PU ROC curve plot')
-        voya_plotter.roc_pu(clf_results)
-        plt.savefig(os.path.join(out_path, 'roc_pu__{}'.format(clf_name)), bbox_inches='tight')
+        if roc_pu_enabled:
+            voya_logger.debug('Generating PU ROC curve plot')
+            voya_plotter.roc_pu(clf_results)
+            plt.savefig(os.path.join(out_path, 'roc_pu__{}'.format(clf_name)), bbox_inches='tight')
 
         plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
