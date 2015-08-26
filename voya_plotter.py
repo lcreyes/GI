@@ -12,12 +12,11 @@ import numpy as np
 import seaborn
 from sklearn.tree import export_graphviz
 
-import semisup_metrics
-
 voya_logger = logging.getLogger('clairvoya')
 
 try:
     import optunity.metrics
+    import semisup_metrics
 except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
