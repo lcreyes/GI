@@ -46,6 +46,7 @@ from sklearn.grid_search import GridSearchCV
 import sklearn.cross_validation
 import sklearn.ensemble
 import docopt
+import matplotlib.pyplot as plt
 
 import datasetup
 import benchmarks
@@ -239,7 +240,7 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         "out_path": None,
         "num_folds": 5,
         "test_size": 0.2,
-        "num_cores": 1,
+        "num_cores": 3,
         "pu_learning": False,
         "pu_rand_samp_frac": False,
         "verbosity": 0,
@@ -251,11 +252,29 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         'search_results_file': '',  # csv file that records the results of each run
         'soft_search_run': True,  #  if True builds on the previous results, if false overwrites the results file
         'search_range': (0.5, 1, 2),  # range of values to run over
-        'runs_per_search': 3  # number of times to run the search per parameter per classifier
+        'runs_per_search': 3,  # number of times to run the search per parameter per classifier
+        'search_live_plot': False,
+        'constant_test_train': True,  # otherwise will resplit every run_per_search
     }
 
     default_config.update(config)
     config = default_config
+
+    if config['constant_test_train']:  # Split test / train so we have a constant testing set
+        try:
+            df = datasetup.load_data(config['data_file'])
+        except IOError:  # file doesnt exist, try seeing is its a df instead
+            df = config['data_file']
+
+        df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],)
+
+        config["test_df"] = df_test
+        config["train_df"] = df_train
+        config["data_file"] = None
+
+        if not config['runs_per_search'] == 1:  # no point doing more if we have a constant test/train
+            voya_logger.warning('Setting runs_per_search to 1 as constant_test_train is True, change auc_folds instead')
+            config['runs_per_search'] = 1
 
     save_file = config['search_results_file']
     search_range = config['search_range']
@@ -267,13 +286,16 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         with open(save_file, 'wb') as f:
             f.write('clf,auc,gamma\n')
 
-    auc_results = {clf_name: [] for clf_name in classifiers.keys()}
+    fig = None
+
     for gamma_num, gamma in enumerate(search_range):  # gamma is a single value in the search range
         voya_logger.info('Running classifiers for gamma={} ({}/{})'.format(gamma, gamma_num + 1, len(search_range)))
 
-        run_results = {clf_name: [] for clf_name in classifiers.keys()}  # initialise result dict
         for i in xrange(runs_per_search):
             config.update({"u_to_p_ratio": gamma})
+
+            if config['constant_test_train']:
+                config["train_df"] = datasetup.downsample_pu_df(df_train, config["u_to_p_ratio"])
 
             results_dict = run_benchmark(config, classifiers, classifiers_gridparameters)
 
@@ -286,8 +308,10 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
                 csv_f = csv.writer(f)
                 csv_f.writerows(csv_output)
 
-        for clf_name in classifiers.keys():
-            auc_results[clf_name].append(run_results[clf_name])
+            if config['search_live_plot']:
+                plt.clf()
+                fig = voya_plotter.pu_search_result(save_file, fig)
+                plt.draw()
 
 
 class VoyaConfigError(Exception):

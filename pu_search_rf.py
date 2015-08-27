@@ -22,8 +22,8 @@ config = {
     "verbosity": 1,
     "random_forest_tree_plot": False,
     "auc_folds": 1,
-    'search_results_file': 'search_results.csv',  # csv file that records the results of each run
-    'soft_search_run': True, #  if True builds on the previous results, if false overwrites the results file
+    'search_results_file': 'purf_results.csv',  # csv file that records the results of each run
+    'soft_search_run': True,  #  if True builds on the previous results, if false overwrites the results file
     'search_range': (0.5, 1, 2),  # range of values to run over
     'runs_per_search': 3,  # number of times to run the search per parameter per classifier
     'search_live_plot': True,  # whether the show the progress as a plot
