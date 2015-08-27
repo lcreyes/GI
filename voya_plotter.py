@@ -2,6 +2,7 @@ import logging
 from os import system
 
 import pandas
+import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
@@ -21,54 +22,52 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
-
 def prVSranking_curve(clf_results):
-
     y_test = clf_results["y_test"]
     clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
 
-    ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob','label'])
+    ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
     ytuple = ytuple.sort(columns='prob', ascending=False)
 
     num_positives_total = np.sum(y_test)
     num_total = y_test.size
 
-    overall_fraction_positives = float(num_positives_total)/num_total
+    overall_fraction_positives = float(num_positives_total) / num_total
 
-    pr_curve= np.asarray((0., 0.)) #first point is always (0, 0)
-    tpr_curve= np.asarray((0., 1.)) #first point is always (0, 1)
+    pr_curve = np.asarray((0., 0.))  # first point is always (0, 0)
+    tpr_curve = np.asarray((0., 1.))  # first point is always (0, 1)
 
-    perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total)/num_total, 1.], [1.,1.]])
+    perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
-
     for r in range(0, y_test.size):
-        rankedSet = ytuple.iloc[0:r,:]
-        num_truePositives = rankedSet[np.logical_and(rankedSet.prob>0.5, rankedSet.label==1)].shape[0]
-        num_positives_inRank = rankedSet[rankedSet.label>0.5].shape[0]
-        positive_rate = float(num_truePositives)/num_positives_total
-        pr_curve = np.vstack((pr_curve, np.asarray((float(r)/num_total, positive_rate))))
-        if num_positives_inRank > 0. :
-            true_positive_rate = float(num_truePositives)/num_positives_inRank
-            tpr_curve = np.vstack((tpr_curve, np.asarray((float(r)/num_total, true_positive_rate))))
+        rankedSet = ytuple.iloc[0:r, :]
+        num_truePositives = rankedSet[np.logical_and(rankedSet.prob > 0.5, rankedSet.label == 1)].shape[0]
+        num_positives_inRank = rankedSet[rankedSet.label > 0.5].shape[0]
+        positive_rate = float(num_truePositives) / num_positives_total
+        pr_curve = np.vstack((pr_curve, np.asarray((float(r) / num_total, positive_rate))))
+        if num_positives_inRank > 0.:
+            true_positive_rate = float(num_truePositives) / num_positives_inRank
+            tpr_curve = np.vstack((tpr_curve, np.asarray((float(r) / num_total, true_positive_rate))))
 
     # Plot curve
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
 
-#    plt.subplot(211)
-    plt.plot(perfect_classifier_pr_curve[:,0], perfect_classifier_pr_curve[:,1], label='Perfect Classifier', c='blue')
-    plt.plot(random_classifier_pr_curve[:,0], random_classifier_pr_curve[:,1], label='Random Classifier', c='red')
-    plt.plot(pr_curve[:,0], pr_curve[:,1], label=clf_name, c='black')
-    plt.xlim([0.0, overall_fraction_positives+0.1])
+    #    plt.subplot(211)
+    plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
+    plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
+    plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name, c='black')
+    plt.xlim([0.0, overall_fraction_positives + 0.1])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
     plt.ylabel('Fracion of true positives found by Classifier')
     plt.title('{} - Positives Found vs Fraction of data'.format(clf_name))
     plt.legend(loc="lower right")
 
-#in case we later wanted to plot True positive rate
+
+# in case we later wanted to plot True positive rate
 """
     perfect_classifier_tpr_curve = np.array([[0., 1.],  [1.,1.]])
     random_classifier_tpr_curve = np.array([[0., 0.5], [1., 0.5]])
@@ -86,7 +85,6 @@ def prVSranking_curve(clf_results):
 
 
 def roc_pu(clf_results):
-
     nboot = 2000
     ci_width = 0.95
     X = clf_results["X_train"]
@@ -101,15 +99,16 @@ def roc_pu(clf_results):
     num_unl = len(y_test) - num_pos
 
     ##############################
-    #Estimate "beta", the fraction of positives among the unlabeled.
-    #Below we use the method from Elkan & Noto to estimate p(s=1|y=1) = num_pos_labeled/total_pos
-    #From here it's simple to determine beta = num_pos_unlabeled/tot_unlabeled
-    hold_out_ratio = 0.1    #For now, use default value from E&N method
+    # Estimate "beta", the fraction of positives among the unlabeled.
+    # Below we use the method from Elkan & Noto to estimate p(s=1|y=1) = num_pos_labeled/total_pos
+    # From here it's simple to determine beta = num_pos_unlabeled/tot_unlabeled
+    hold_out_ratio = 0.1  # For now, use default value from E&N method
     positives = np.where(y == 1.)[0]
     hold_out_size = np.ceil(len(positives) * hold_out_ratio)
 
     if len(positives) <= hold_out_size:
-        raise ValueError('Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
+        raise ValueError(
+            'Not enough positive examples to estimate p(s=1|y=1,x). Need at least ' + str(hold_out_size + 1) + '.')
 
     np.random.shuffle(positives)
     hold_out = positives[:hold_out_size]
@@ -122,43 +121,43 @@ def roc_pu(clf_results):
     hold_out_predictions = clf.predict_proba(X_hold_out)
     hold_out_predictions = hold_out_predictions[:, 1]
     c = np.mean(hold_out_predictions)
-    beta = (sum(y_test)/(len(y_test) - sum(y_test)))*(1.-c)/c
+    beta = (sum(y_test) / (len(y_test) - sum(y_test))) * (1. - c) / c
     ##############################
 
     true_pfrac = beta
     num_neg_in_unl = int(round(num_unl * (1 - true_pfrac)))
     num_pos_in_unl = int(round(num_unl * true_pfrac))
-    labels = [None]*len(y_test)
+    labels = [None] * len(y_test)
     for i in range(len(labels)):
-        if(y_test[i]==1): labels[i]=True
-    #labels = [True] * num_pos + [None] * num_pos_in_unl + [False] * num_neg + [None] * num_neg_in_unl
-    #true_labels = [True] * (num_pos + num_pos_in_unl) + [False] * (num_neg + num_neg_in_unl)
-    #decision_values = generate_pos_class_decvals(num_pos + num_pos_in_unl) + generate_neg_class_decvals(num_neg + num_neg_in_unl)
+        if (y_test[i] == 1): labels[i] = True
+    # labels = [True] * num_pos + [None] * num_pos_in_unl + [False] * num_neg + [None] * num_neg_in_unl
+    # true_labels = [True] * (num_pos + num_pos_in_unl) + [False] * (num_neg + num_neg_in_unl)
+    # decision_values = generate_pos_class_decvals(num_pos + num_pos_in_unl) + generate_neg_class_decvals(num_neg + num_neg_in_unl)
 
     num_positives_total = np.sum(y_test)
-    num_total = len(y_test) #y_test.size
-    #Computing ROC bounds, curves
+    num_total = len(y_test)  # y_test.size
+    # Computing ROC bounds, curves
     roc_bounds = semisup_metrics.roc_bounds(labels, y_pred,
-            beta=beta, ci_fun=semisup_metrics.bootstrap_ecdf_bounds)
+                                            beta=beta, ci_fun=semisup_metrics.bootstrap_ecdf_bounds)
 
     fpr, tpr, _ = sklearn.metrics.roc_curve(y_test, y_pred)
-    #auc_true, roc_true = optunity.metrics.roc_auc(true_labels, y_pred, return_curve=True)
+    # auc_true, roc_true = optunity.metrics.roc_auc(true_labels, y_pred, return_curve=True)
     auc_neg, curve_neg = optunity.metrics.roc_auc(labels, y_pred, return_curve=True)
-    #auc_lower = semisup_metrics.auc(roc_bounds.lower)
-    #auc_upper = semisup_metrics.auc(roc_bounds.upper)
-    #print('+ Plotting ROC curves.')
+    # auc_lower = semisup_metrics.auc(roc_bounds.lower)
+    # auc_upper = semisup_metrics.auc(roc_bounds.upper)
+    # print('+ Plotting ROC curves.')
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
 
-    #plt.plot(fpr, tpr, color='magenta')
-    #plt.plot(*zip(*roc_true), color='black', label="beta = %3.1f" %beta)
+    # plt.plot(fpr, tpr, color='magenta')
+    # plt.plot(*zip(*roc_true), color='black', label="beta = %3.1f" %beta)
     plt.plot(*zip(*roc_bounds.lower), color='blue', label="lower bound")
     plt.plot(*zip(*roc_bounds.upper), color='red', label="upper bound")
     plt.plot(*zip(*curve_neg), color='black', ls=':', label="beta=0")
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('%s - PU ROC Bounds with beta=%5.3f (Claesen+2015)' %(clf_name, beta))
+    plt.title('%s - PU ROC Bounds with beta=%5.3f (Claesen+2015)' % (clf_name, beta))
     plt.legend(loc="lower right")
 
 
@@ -196,13 +195,13 @@ def reliability_curve(clf_results):
     ax2.set_xlabel("Mean predicted value")
     # for Positives
     ax2.hist(y_pred[y_test.astype(bool)], range=(0, 1), bins=15, label="Positives",
-            histtype="step", lw=2, color='b', alpha=0.3, normed=1)
+             histtype="step", lw=2, color='b', alpha=0.3, normed=1)
     ax2.set_ylabel("Normalised count")
     ax2.legend(loc="upper center", ncol=2)
 
     # for Negatives
     ax2.hist(y_pred[-(y_test.astype(bool))], range=(0, 1), bins=15, label="Negatives",
-            histtype="step", lw=2, color='r', alpha=0.3, normed=1)
+             histtype="step", lw=2, color='r', alpha=0.3, normed=1)
     ax2.legend(loc="upper center", ncol=2)
 
 
@@ -244,11 +243,11 @@ def confusion_matrix(clf_results, threshold=0.5):
 
     confMatrix1 = ax1.imshow(cm, interpolation='nearest', cmap=cmap)
 
-    #Display the values of the conf matrix on the plot
-    cm_bbox = {'facecolor':'white', 'alpha':0.5, 'pad':10}
+    # Display the values of the conf matrix on the plot
+    cm_bbox = {'facecolor': 'white', 'alpha': 0.5, 'pad': 10}
     for i in range(2):
         for j in range(2):
-            ax1.text(i,j,"%d" %cm[i,j], size=14, ha='center', bbox=cm_bbox)
+            ax1.text(i, j, "%d" % cm[i, j], size=14, ha='center', bbox=cm_bbox)
 
     plt.colorbar(confMatrix1, ax=ax1)
 
@@ -261,7 +260,7 @@ def confusion_matrix(clf_results, threshold=0.5):
 
     for i in range(2):
         for j in range(2):
-            ax2.text(i,j,"%4.2f" %cm_normalized[i,j], ha='center', size=14, bbox=cm_bbox)
+            ax2.text(i, j, "%4.2f" % cm_normalized[i, j], ha='center', size=14, bbox=cm_bbox)
 
     plt.colorbar(confMatrix2, ax=ax2)
 
@@ -284,7 +283,7 @@ def roc_curve(clf_results):
     # Plot of a ROC curve for a specific class
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' %roc_auc)
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
@@ -322,13 +321,13 @@ def roc_curve_cv(clf_results, num_folds=6):
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
 
-    #Loop over each fold, make distinction on whether grid_search is on/off
+    # Loop over each fold, make distinction on whether grid_search is on/off
     for i, (train, test) in enumerate(cv):
         if param_grid is None:
             clf_fitted = clf_notoptimized.fit(X[train], y[train])
 
         else:
-            #Need a second k-fold here to do Grid Sarch on this particular fold
+            # Need a second k-fold here to do Grid Sarch on this particular fold
             skf = sklearn.cross_validation.StratifiedKFold(y[train], n_folds=2)
             clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
             clf_fitted = clf.fit(X[train], y[train]).best_estimator_
@@ -342,19 +341,19 @@ def roc_curve_cv(clf_results, num_folds=6):
         roc_auc = sklearn.metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (i, roc_auc))
 
-    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6)) #, label='Luck')
+    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6))  # , label='Luck')
 
     mean_tpr /= len(cv)
     mean_tpr[-1] = 1.0
     mean_auc = sklearn.metrics.auc(mean_fpr, mean_tpr)
     plt.plot(mean_fpr, mean_tpr, 'k--',
-        label='Mean ROC (area = %0.2f)' % mean_auc, lw=2)
+             label='Mean ROC (area = %0.2f)' % mean_auc, lw=2)
 
     plt.xlim([0., 1.])
     plt.ylim([0., 1.])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('%s - Receiver operating characteristic CV' %clf_name)
+    plt.title('%s - Receiver operating characteristic CV' % clf_name)
     plt.legend(loc="lower right")
 
 
@@ -376,16 +375,16 @@ def plot_boundary(clf_results, runPCA=True):
     if runPCA:  # then run PCA on the features and take top 2
         X = sklearn.decomposition.PCA(n_components=2).fit_transform(X)
         X = sklearn.preprocessing.MinMaxScaler().fit_transform(X)
-        labels = ['pca_1','pca_2']
+        labels = ['pca_1', 'pca_2']
     else:  # select first 2 features
         X = X[:, :2]
-        labels = ['x_1','x_2']
+        labels = ['x_1', 'x_2']
     # create a mesh to plot in
     h = .01  # step size in the mesh
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                     np.arange(y_min, y_max, h))
+                         np.arange(y_min, y_max, h))
 
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
@@ -394,7 +393,7 @@ def plot_boundary(clf_results, runPCA=True):
     # point in the mesh [x_min, m_max]x[y_min, y_max].
     clf_fitted = clf_notoptimized.fit(X, y)
 
-    Z = clf_fitted.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:,1]
+    Z = clf_fitted.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
     Z = np.clip(Z, 0., 1.)
 
     # Put the result into a color plot
@@ -402,17 +401,17 @@ def plot_boundary(clf_results, runPCA=True):
     levels = np.linspace(0., 1., 11)
     plt.contourf(xx, yy, Z, cmap=plt.cm.bwr, alpha=0.6, levels=levels)
     cbar = plt.colorbar()
-    #cbar.ax.set_ylabel('probability threshold')
-    cs1 = plt.contour(xx, yy, Z, colors='k', alpha=0.5, levels=[0.,0.5,1.])
+    # cbar.ax.set_ylabel('probability threshold')
+    cs1 = plt.contour(xx, yy, Z, colors='k', alpha=0.5, levels=[0., 0.5, 1.])
 
     try:
-        plt.clabel(cs1, fmt = '%2.1f', colors = 'k', fontsize=14, manual=[(0,1)], inline=1)
+        plt.clabel(cs1, fmt='%2.1f', colors='k', fontsize=14, manual=[(0, 1)], inline=1)
     except UnboundLocalError:
-        pass #in case there is no 0.5 contour in map.
+        pass  # in case there is no 0.5 contour in map.
 
     # Plot also the training points
-    X_pos = X[y==1]
-    X_neg = X[y==0]
+    X_pos = X[y == 1]
+    X_neg = X[y == 0]
     plt.scatter(X_neg[:, 0], X_neg[:, 1], c='b', alpha=0.8, label="Unlabeled")
     plt.scatter(X_pos[:, 0], X_pos[:, 1], c='r', alpha=0.8, label="Positives")
 
@@ -424,16 +423,56 @@ def plot_boundary(clf_results, runPCA=True):
     plt.legend(loc="upper right")
 
 
-def plot_trees(clf_fitted,feature_names,out_path):
-    print("numner of features",clf_fitted.n_features_)
+def plot_trees(clf_fitted, feature_names, out_path):
+    print("numner of features", clf_fitted.n_features_)
     subdir = "forest-trees"
     mksubdir = "mkdir -p " + out_path + subdir
     system(mksubdir)
     for i, tree in enumerate(clf_fitted.estimators_):
         with open(out_path + subdir + '/RandomForests_tree_' + str(i) + '.dot', 'w') as dotfile:
-            export_graphviz(tree,dotfile,feature_names=feature_names,max_depth=4)
+            export_graphviz(tree, dotfile, feature_names=feature_names, max_depth=4)
             dotfile.close()
-            dot2png="dot -Tpng " + out_path + subdir + "/RandomForests_tree_" + str(i) + ".dot -o " + out_path + subdir + "/RandomForests_tree_" + str(i) + ".png"
+            dot2png = "dot -Tpng " + out_path + subdir + "/RandomForests_tree_" + str(
+                i) + ".dot -o " + out_path + subdir + "/RandomForests_tree_" + str(i) + ".png"
             system(dot2png)
-            rmdot="rm " + out_path + subdir + "/*.dot"
+            rmdot = "rm " + out_path + subdir + "/*.dot"
     system(rmdot)
+
+
+def pu_search_result(result_file, fig=None):
+    """ loads a PU search result file and displays the plot
+    :param result_file:
+    :return:
+    """
+
+    results_df = pd.read_csv(result_file)
+    results_table = results_df.groupby(["clf", "gamma"], as_index=False).agg(['mean', 'std', 'count'])
+    colors = seaborn.color_palette("Set2", 10)
+    result_classifiers = results_df.clf.unique()
+
+    if fig is None:
+        plt.figure(figsize=(10,10))
+
+    for i, clf_name in enumerate(result_classifiers):
+        clf_results = results_table.ix[(clf_name)]
+        clf_gamma_range = clf_results.index
+        auc_mean = clf_results.auc["mean"]
+        auc_std = clf_results.auc["std"]
+        auc_count = clf_results.auc["count"]
+        auc_std_err = auc_std / np.sqrt(auc_count)
+
+    #   print '\n---{}\n'.format(clf_name), clf_gamma_range, auc_mean, auc_std_err, colors[i]
+        plt.errorbar(clf_gamma_range, auc_mean, label=clf_name,
+                     yerr=auc_std_err.values, c=colors[i], capthick=1)
+
+        plt.scatter(clf_gamma_range, auc_mean, c=colors[i], lw=0)
+
+    plt.ylabel('AUC Score')
+    plt.xlabel('Fraction of Unlabelled to Positive')
+    plt.legend()
+    # plt.xscale('log')
+    # title = "Train P {}, N {}".format(
+    #     num_pos, num_neg)
+    plt.title('PU Search')
+
+    return fig
