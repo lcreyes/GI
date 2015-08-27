@@ -28,6 +28,7 @@ config = {
     'runs_per_search': 1,  # number of times to run the search per parameter per classifier
     'search_live_plot': False,  # whether the show the progress as a plot
     'constant_test_train': True,  # otherwise will resplit every run_per_search
+    'test_neg_to_pos_ratio': 1.0,
 }
 
 rf_estimator = sklearn.ensemble.RandomForestClassifier(max_depth=7, n_estimators=70, n_jobs=config["num_cores"])

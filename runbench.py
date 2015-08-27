@@ -255,6 +255,7 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         'runs_per_search': 3,  # number of times to run the search per parameter per classifier
         'search_live_plot': False,
         'constant_test_train': True,  # otherwise will resplit every run_per_search
+        'test_neg_to_pos_ratio': None,
     }
 
     default_config.update(config)
@@ -266,7 +267,8 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         except IOError:  # file doesnt exist, try seeing is its a df instead
             df = config['data_file']
 
-        df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],)
+        df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'], 
+                                                             test_neg_to_pos_ratio=config['test_neg_to_pos_ratio'])
 
         config["test_df"] = df_test
         config["train_df"] = df_train

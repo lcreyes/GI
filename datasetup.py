@@ -86,7 +86,7 @@ def scale_features(X):
     return X_scaled
 
 
-def split_test_train_df_pu(df, test_size):
+def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio = None):
     """ Splits the data frame containing P, N and U labels into a training and testing dataframes, performing a
     random shuffle on the positives.
 
@@ -100,15 +100,24 @@ def split_test_train_df_pu(df, test_size):
     positives = df[df['label'] == 1]
     negatives = df[df['label'] == -1]
     unlabeled = df[df['label'] == 0]
-
+    
     positives = positives.reindex(np.random.permutation(positives.index))
-
+    negatives = negatives.reindex(np.random.permutation(negatives.index))
+ 
     num_positives_test = int(len(positives.index) * test_size)
     positives_test = positives[:num_positives_test]
     positives_train = positives[num_positives_test:]
 
+    if test_neg_to_pos_ratio is not None:
+        num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
+    else:
+        num_negatives_test = len(negatives.index)
+        
+    negatives_test = negatives[:num_negatives_test]
+        
+
     df_train = positives_train.append(unlabeled, ignore_index=True)
-    df_test = positives_test.append(negatives, ignore_index=True)
+    df_test = positives_test.append(negatives_test, ignore_index=True)
 
     assert set(df_train['label'].unique()) == set((1, 0)), df_train.label.value_counts()
     assert set(df_test['label'].unique()) == set((1, -1)), df_test.label.value_counts()
