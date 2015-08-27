@@ -17,21 +17,18 @@ config = {
     "num_folds": 1,
     "test_size": 0.2,
     "pu_learning": True,
-    "num_cores": 1,  # -1 means num_cores available
+    "num_cores": 3,  # -1 means num_cores available
 
     "verbosity": 1,
     "random_forest_tree_plot": False,
-    "auc_folds": 1,
-    'search_results_file': 'search_results.csv',  # csv file that records the results of each run
+    "auc_folds": 5,
+    'search_results_file': 'test1_search_results.csv',  # csv file that records the results of each run
     'soft_search_run': True, #  if True builds on the previous results, if false overwrites the results file
     'search_range': (0.5, 1, 2),  # range of values to run over
-    'runs_per_search': 3  # number of times to run the search per parameter per classifier
+    'runs_per_search': 1,  # number of times to run the search per parameter per classifier
+    'search_live_plot': False,  # whether the show the progress as a plot
+    'constant_test_train': True,  # otherwise will resplit every run_per_search
 }
-
-# best parameters for rbf kernel(according to GridSearch)
-# svc_estimator = sklearn.svm.SVC(C=2.5, kernel='rbf', gamma=0.2, class_weight='auto')
-# best parameter for linear kernel (according to GridSearch)
-svc_estimator = sklearn.svm.SVC(C=2.5, kernel='linear', class_weight='auto', probability=True)
 
 rf_estimator = sklearn.ensemble.RandomForestClassifier(max_depth=7, n_estimators=70, n_jobs=config["num_cores"])
 
@@ -45,19 +42,17 @@ RFDoubleWeight = sklearn.pipeline.Pipeline([
     ('dw', pulearning.PULearnByDoubleWeighting(rf_estimator)),
 ])
 
-# best parameters for LR (according to GridSearch)
-LR_estimator = sklearn.linear_model.LogisticRegression(C=0.4, penalty='l1')
-
 
 classifiers = {
     'RF_Bagging': RFBagging,
     'RF_DoubleWeight': pulearning.PULearnByDoubleWeighting(rf_estimator),
-
+    'RF': rf_estimator,
 }
 
 classifiers_gridparameters = {
     'RF_Bagging': None,
     'RF_DoubleWeight': None,
+    'RF': None,
 
     # 'RF_DoubleWeight(E&N2008)': {"rf__n_estimators": [70], 'rf__max_depth': [7]},
     # 'RF_Bagging': {'po__n_estimators': [100], 'po__max_samples': [0.01, 0.03, 0.05, 0.1, 0.3, 0.5],

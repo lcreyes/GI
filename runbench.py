@@ -307,7 +307,8 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
             for clf_name in classifiers.keys():
                 if config['constant_test_train']:
                     csv_row = (clf_name, results_dict[clf_name]['auc_score'], gamma,
-                               results_dict[clf_name]['auc_std_err'], results_dict[clf_name]['auc_std_err'])
+                               results_dict[clf_name]['auc_std'], results_dict[clf_name]['auc_folds'],
+                               results_dict[clf_name]['auc_std_err'])
                 else:
                     csv_row = (clf_name, results_dict[clf_name]['auc_score'], gamma)
 
