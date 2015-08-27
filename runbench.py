@@ -284,7 +284,10 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
 
     if not os.path.exists(save_file) or not config['soft_search_run']:
         with open(save_file, 'wb') as f:
-            f.write('clf,auc,gamma\n')
+            if config['constant_test_train']:
+                f.write('clf,auc,gamma,std,folds,stderr\n')
+            else:
+                f.write('clf,auc,gamma\n')
 
     fig = None
 
@@ -302,7 +305,13 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
             # Output
             csv_output = []
             for clf_name in classifiers.keys():
-                csv_output.append((clf_name, results_dict[clf_name]['auc_score'], gamma))
+                if config['constant_test_train']:
+                    csv_row = (clf_name, results_dict[clf_name]['auc_score'], gamma,
+                               results_dict[clf_name]['auc_std_err'], results_dict[clf_name]['auc_std_err'])
+                else:
+                    csv_row = (clf_name, results_dict[clf_name]['auc_score'], gamma)
+
+                csv_output.append(csv_row)
 
             with open(save_file, 'ab') as f:
                 csv_f = csv.writer(f)

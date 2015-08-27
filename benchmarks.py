@@ -45,6 +45,7 @@ def all_benchmarks(clf_results, out_path, auc_folds=1):
         scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=auc_folds, scoring='roc_auc')
         clf_results['pretty_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
         clf_results['auc_score'] = scores.mean()
+        clf_results['auc_std'] = scores.std()
         clf_results['auc_std_err'] = scores.std()/np.sqrt(auc_folds)
     else:
         clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
