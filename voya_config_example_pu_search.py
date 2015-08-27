@@ -23,7 +23,7 @@ config = {
     "random_forest_tree_plot": False,
     "auc_folds": 5,
     'search_results_file': 'test1_search_results.csv',  # csv file that records the results of each run
-    'soft_search_run': True, #  if True builds on the previous results, if false overwrites the results file
+    'soft_search_run': False, #  if True builds on the previous results, if false overwrites the results file
     'search_range': (0.5, 1, 2),  # range of values to run over
     'runs_per_search': 1,  # number of times to run the search per parameter per classifier
     'search_live_plot': False,  # whether the show the progress as a plot

@@ -446,6 +446,7 @@ def pu_search_result(result_file, fig=None):
     """
 
     results_df = pd.read_csv(result_file)
+
     results_table = results_df.groupby(["clf", "gamma"], as_index=False).agg(['mean', 'std', 'count'])
     colors = seaborn.color_palette("Set2", 10)
     result_classifiers = results_df.clf.unique()
@@ -455,15 +456,15 @@ def pu_search_result(result_file, fig=None):
 
     for i, clf_name in enumerate(result_classifiers):
         clf_results = results_table.ix[(clf_name)]
-        clf_gamma_range = clf_results.index
-        auc_mean = clf_results.auc["mean"]
-        auc_std = clf_results.auc["std"]
-        auc_count = clf_results.auc["count"]
+        clf_gamma_range = clf_results.index.values
+        auc_mean = clf_results.auc["mean"].values
+        auc_std = clf_results.auc["std"].values
+        auc_count = clf_results.auc["count"].values
         auc_std_err = auc_std / np.sqrt(auc_count)
 
     #   print '\n---{}\n'.format(clf_name), clf_gamma_range, auc_mean, auc_std_err, colors[i]
         plt.errorbar(clf_gamma_range, auc_mean, label=clf_name,
-                     yerr=auc_std_err.values, c=colors[i], capthick=1)
+                     yerr=auc_std_err, c=colors[i], capthick=1)
 
         plt.scatter(clf_gamma_range, auc_mean, c=colors[i], lw=0)
 
@@ -476,3 +477,46 @@ def pu_search_result(result_file, fig=None):
     plt.title('PU Search')
 
     return fig
+
+
+def pu_search_result_fixed(result_file, err_bars='stderr'):
+    """ same as pu_search_result but for a fixed test train (i.e. has 1 row per gamma and the columns std, stderr and folds
+
+    :param err_bars: 'std' or 'std_err'
+    :return:
+    """
+
+    results_df = pd.read_csv(result_file)
+
+    results_table = results_df
+    colors = seaborn.color_palette("Set2", 10)
+    result_classifiers = results_df.clf.unique()
+
+    plt.figure(figsize=(10,10))
+
+    for i, clf_name in enumerate(result_classifiers):
+        clf_results = results_table[results_table.clf == clf_name]
+
+        gamma_range = clf_results["gamma"].values
+        auc_mean = clf_results["auc"].values
+        auc_std = clf_results["std"].values
+        auc_std_err = clf_results["stderr"].values
+        auc_count = clf_results["folds"].values
+
+        if err_bars == 'std':
+            y_err = auc_std
+        else:
+            y_err = auc_std_err
+
+    #   print '\n---{}\n'.format(clf_name), clf_gamma_range, auc_mean, auc_std_err, colors[i]
+        plt.errorbar(gamma_range, auc_mean, label=clf_name, yerr=y_err, c=colors[i], capthick=1)
+
+        plt.scatter(gamma_range, auc_mean, c=colors[i], lw=0)
+
+    plt.ylabel('AUC Score')
+    plt.xlabel('Fraction of Unlabelled to Positive')
+    plt.legend()
+    # plt.xscale('log')
+    # title = "Train P {}, N {}".format(
+    #     num_pos, num_neg)
+    plt.title('PU Search')
