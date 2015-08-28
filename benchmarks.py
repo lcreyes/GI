@@ -69,9 +69,9 @@ def all_benchmarks(clf_results, out_path, auc_folds=1):
         voya_plotter.roc_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'roc__{}'.format(clf_name)), bbox_inches='tight')
 
-        voya_logger.debug('Generating plot boundary plot')
-        voya_plotter.plot_boundary(clf_results, runPCA=True)
-        plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
+        # voya_logger.debug('Generating plot boundary plot')
+        # voya_plotter.plot_boundary(clf_results, runPCA=True)
+        # plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
 
         voya_logger.debug('Generating roc curve cv')
         voya_plotter.roc_curve_cv(clf_results)

@@ -105,7 +105,10 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         voya_logger.info("Input data labels \n{}".format(df.label.value_counts()))
 
-        datasetup.scale_dataframe_features(df)
+        try:
+            datasetup.scale_dataframe_features(df)
+        except TypeError:  # Got a string as the DF (after IOError)
+            raise VoyaConfigError('data_file is not a valid path to a file or a Pandas DF, got {}'.format(df))
 
         if config["pu_learning"]:  # input of positive, negative and unlabeled labels (1, -1, 0)
             voya_logger.info("PU Learning Mode On")
@@ -144,7 +147,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc')
+            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
+                               n_jobs=config['num_cores'])
 
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimal_parameters = clf.best_params_

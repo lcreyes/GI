@@ -31,7 +31,7 @@ def load_data(filename):
 
 
 def downsample_pu_df(df, unlab_to_pos_ratio):
-    """ Takes input of the universe with P 0 N -1 and U 0 data and randomly samples the universe
+    """ Takes input of the universe with P 1 N -1 and U 0 data and randomly samples the universe
 
     :param df: input data frame with positives, negatives and unlabelled data
     :param unlab_to_pos_ratio: how much unlabelled to include as a propotion of positives
@@ -50,7 +50,7 @@ def downsample_pu_df(df, unlab_to_pos_ratio):
     df_unlab = df[df['label'] == 0]
 
 
-    df_unlab.reindex(np.random.permutation(df_unlab.index))
+    df_unlab = df_unlab.reindex(np.random.permutation(df_unlab.index))
     downsampled_df = df_pos_neg.append(df_unlab[:num_required_unlab], ignore_index=True)
 
     voya_logger.info('Downsampled from {} to {} unlabelled'.format(num_unl, num_required_unlab))
@@ -86,16 +86,19 @@ def scale_features(X):
     return X_scaled
 
 
-def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio = None):
+def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_original_labels=False):
     """ Splits the data frame containing P, N and U labels into a training and testing dataframes, performing a
     random shuffle on the positives.
 
     testing =  testsize*P, N
     training = (1-testsize)*P, U
 
-    In the process negative labels (-1) are converted to 0 in order to be compare the sets
+    In the process negative labels (-1) are converted to 0 in order to be compare the sets and remaining negatives are
+    added to the unlabelled
 
-    :param pu_random_sampling_frac: fraction of unlabelled (0 to 1) to be considered negatives (randomly sampled)
+    :param test_neg_to_pos_ratio: ratio of positives to nargatives in test set, used for unbalnced cases, otherwise will
+        split into the same % as positives
+    :param keep_original_labels: if true preserves the labels 1, -1 and 0 . otherwise will turn unlabelled and negatives to 0
     """
     positives = df[df['label'] == 1]
     negatives = df[df['label'] == -1]
@@ -111,21 +114,21 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio = None):
     if test_neg_to_pos_ratio is not None:
         num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
     else:
-        num_negatives_test = len(negatives.index)
+        num_negatives_test = int(len(negatives.index) * test_size)
         
     negatives_test = negatives[:num_negatives_test]
-        
+    negatives_train = negatives[num_negatives_test:]
 
-    df_train = positives_train.append(unlabeled, ignore_index=True)
+    df_train = positives_train.append([unlabeled, negatives_train], ignore_index=True)
     df_test = positives_test.append(negatives_test, ignore_index=True)
 
-    assert set(df_train['label'].unique()) == set((1, 0)), df_train.label.value_counts()
+    assert set(df_train['label'].unique()) == set((1, 0, -1)), df_train.label.value_counts()
     assert set(df_test['label'].unique()) == set((1, -1)), df_test.label.value_counts()
 
-    # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
-    df_test.loc[df_test.label == -1, 'label'] = 0
-    
-    assert set(df_test['label'].unique()) == set((1, 0))
+    if not keep_original_labels:
+        # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
+        df_test.loc[df_test.label == -1, 'label'] = 0
+        assert set(df_test['label'].unique()) == set((1, 0))
 
     return df_test, df_train
 
