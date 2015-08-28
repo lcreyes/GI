@@ -106,6 +106,7 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
     
     positives = positives.reindex(np.random.permutation(positives.index))
     negatives = negatives.reindex(np.random.permutation(negatives.index))
+    unlabeled = unlabeled.reindex(np.random.permutation(unlabeled.index))
  
     num_positives_test = int(len(positives.index) * test_size)
     positives_test = positives[:num_positives_test]
