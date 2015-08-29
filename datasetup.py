@@ -112,9 +112,11 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
     positives_test = positives[:num_positives_test]
     positives_train = positives[num_positives_test:]
 
-    if test_neg_to_pos_ratio is not None:
+    if test_neg_to_pos_ratio is not None:  # default split i.e 80:20
         num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
-    else:
+    elif test_neg_to_pos_ratio == 'all':  # all negatives go in test
+        num_negatives_test = int(len(negatives.index))
+    else:  # negatives in test in test_neg_to_pos_ratio, rest go into train as unlabelled
         num_negatives_test = int(len(negatives.index) * test_size)
         
     negatives_test = negatives[:num_negatives_test]
