@@ -21,7 +21,7 @@ except ImportError:
     roc_pu_enabled = False
 
 
-def all_benchmarks(clf_results, out_path, auc_folds=1):
+def all_benchmarks(clf_results, out_path, auc_folds=1, rankingFrac=None):
     """ Runs all the benchmarks for given clf result saving the output to out_path
 
     Current classifier structure for plots is make a function in voya_plotter and call it here currently plots are
@@ -41,6 +41,19 @@ def all_benchmarks(clf_results, out_path, auc_folds=1):
     clf = clf_results["clf"]
     X_test = clf_results["X_test"]
 
+    if rankingFrac is not None:
+        num_points_inRank = int(len(y_test)*rankingFrac)
+        feature_labels = ['feature {}'.format(i) for i in range(0, X_test.shape[1])]
+        ranking_tuple = pandas.DataFrame(np.column_stack((y_pred, y_pred_label, y_test, X_test)), 
+                                 columns=['prob', 'pred_label', 'label']+feature_labels)
+        ranking_tuple = ranking_tuple.sort(columns='prob', ascending=False)
+        ranking_subset = ranking_tuple[0:num_points_inRank,:]
+        y_test = np.asarray(ranking_subset['label'])
+        y_pred = np.asarray(ranking_subset['prob'])
+        y_pred_label = np.asarray(ranking_subset['pred_label'])
+        X_test = np.asarray(ranking_subset[feature_labels])
+        
+
     if auc_folds > 1:
         scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=auc_folds, scoring='roc_auc')
         clf_results['pretty_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
@@ -53,9 +66,9 @@ def all_benchmarks(clf_results, out_path, auc_folds=1):
 
 
 
-
-    clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
-
+    voya_logger.info(sklearn.metrics.classification_report(y_test, y_pred_label))
+    #clf_results['report'] = report
+    
     if out_path is not None:  # output plots to out_path
         voya_logger.debug('Generating Reliability Curve plot')
         voya_plotter.reliability_curve(clf_results)
@@ -100,7 +113,7 @@ def results_dict_to_data_frame(results_dict):
     """
 
     results_table_rows = [row for row in results_dict.values()]
-    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'f1_score']).sort('clf_name')
-    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 'f1_score': 'F1 Score'}, inplace=True)
+    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'report']).sort('clf_name')
+    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 'report': 'Score Report'}, inplace=True)
 
     return results_table

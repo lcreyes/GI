@@ -117,7 +117,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
                 df = datasetup.downsample_pu_df(df, config["u_to_p_ratio"])
 
             df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'],)
-
+            assert set(df_test['label'].unique()) == set((1, 0))
+            
             y_test, X_test = datasetup.split_df_labels_features(df_test)
             y_train, X_train = datasetup.split_df_labels_features(df_train)
 
