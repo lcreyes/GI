@@ -131,6 +131,9 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
         df_test.loc[df_test.label == -1, 'label'] = 0
         assert set(df_test['label'].unique()) == set((1, 0))
 
+        df_train.loc[df_train.label == -1, 'label'] = 0
+        assert set(df_train['label'].unique()) == set((1, 0))
+
     return df_test, df_train
 
 
