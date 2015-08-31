@@ -43,6 +43,7 @@ import logging
 import csv
 
 from sklearn.grid_search import GridSearchCV
+import sklearn.metrics
 import sklearn.cross_validation
 import sklearn.ensemble
 import docopt
@@ -163,8 +164,6 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         y_pred = clf_fitted.predict_proba(X_test)[:, 1]
 
         y_pred_label = clf_fitted.predict(X_test)
-
-        ranking_Frac = config["ranking_Frac"]
         
             
         clf_results.update({

@@ -63,6 +63,8 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['local_precision'] = local_precision
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
+        clf_results['local_pr'] = voya_plotter.pr_in_ranking(clf_results, ranking_Frac)
+        clf_results['ranking_Frac'] = ranking_Frac
         if auc_folds > 1:
             scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
             clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
@@ -70,7 +72,6 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
             clf_results['local_auc_std'] = scores.std()
             clf_results['local_auc_std_err'] = scores.std()/np.sqrt(auc_folds)
             clf_results['local_auc_folds'] = auc_folds
-            clf_results['ranking_Frac'] = ranking_Frac
         else:
             clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
         
@@ -139,9 +140,11 @@ def results_dict_to_data_frame(results_dict):
 
     results_table_rows = [row for row in results_dict.values()]
     results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'local_auc_score', 
-                     'ranking_Frac', 'local_recall', 'local_precision', 'local_f1']).sort('clf_name')
+                     'ranking_Frac', 'local_recall', 'local_precision', 'local_f1', 'local_pr']).sort('clf_name')
     results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 
                                  'local_auc_score': 'Local AUC Score', 'local_precision': 'Local Precision',
-                                 'local_recall':'Local Recall', 'local_f1': 'Local F1', 'ranking_Frac': 'Fraction of Events in Local'}, inplace=True)
+                                 'local_recall':'Local Recall', 'local_f1': 'Local F1', 
+                                 'ranking_Frac': 'Fraction of Events in Local', 'local_pr': 'Local PosRate'}, inplace=True)
 
     return results_table
+

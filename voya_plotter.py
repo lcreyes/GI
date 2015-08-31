@@ -22,9 +22,8 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
-def prVSranking_curve(clf_results):
+def pr_in_ranking(clf_results, ranking_Frac=0.2):
     y_test = clf_results["y_test"]
-    clf_name = clf_results["clf_name"]
     y_pred = clf_results["y_pred"]
 
     ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
@@ -33,23 +32,29 @@ def prVSranking_curve(clf_results):
     num_positives_total = np.sum(y_test)
     num_total = y_test.size
 
-    overall_fraction_positives = float(num_positives_total) / num_total
 
+    ranking_size = int(num_total*ranking_Frac)
+    rankedSet = ytuple.iloc[0:ranking_size, :]
+    num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
+    positive_rate = float(num_positives_inRank) / num_positives_total
+    
+    return positive_rate    
+
+
+def prVSranking_curve(clf_results):
+  
+    clf_name = clf_results['clf_name']
+    y_test = clf_results["y_test"]
+    num_positives_total = np.sum(y_test)
+    num_total = y_test.size
+  
     pr_curve = np.asarray((0., 0.))  # first point is always (0, 0)
-    tpr_curve = np.asarray((0., 1.))  # first point is always (0, 1)
-
+  
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
-    for r in range(0, y_test.size):
-        rankedSet = ytuple.iloc[0:r, :]
-        num_truePositives = rankedSet[np.logical_and(rankedSet.prob > 0.5, rankedSet.label == 1)].shape[0]
-        num_positives_inRank = rankedSet[rankedSet.label > 0.5].shape[0]
-        positive_rate = float(num_truePositives) / num_positives_total
-        pr_curve = np.vstack((pr_curve, np.asarray((float(r) / num_total, positive_rate))))
-        if num_positives_inRank > 0.:
-            true_positive_rate = float(num_truePositives) / num_positives_inRank
-            tpr_curve = np.vstack((tpr_curve, np.asarray((float(r) / num_total, true_positive_rate))))
+    for r in np.linspace(0, 1., num=51):
+        pr_curve = np.vstack((pr_curve, np.asarray((r, pr_in_ranking(clf_results, r)))))
 
     # Plot curve
     seaborn.set_style("whitegrid")
@@ -59,29 +64,12 @@ def prVSranking_curve(clf_results):
     plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
     plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
     plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name, c='black')
-    plt.xlim([0.0, overall_fraction_positives + 0.1])
+    plt.xlim([0.0, float(num_positives_total) / num_total + 0.1])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
-    plt.ylabel('Fracion of true positives found by Classifier')
+    plt.ylabel('Fracion of positives found by Classifier')
     plt.title('{} - Positives Found vs Fraction of data'.format(clf_name))
     plt.legend(loc="lower right")
-
-
-# in case we later wanted to plot True positive rate
-"""
-    perfect_classifier_tpr_curve = np.array([[0., 1.],  [1.,1.]])
-    random_classifier_tpr_curve = np.array([[0., 0.5], [1., 0.5]])
-
-    plt.subplot(212)
-    plt.plot(perfect_classifier_tpr_curve[:,0], perfect_classifier_tpr_curve[:,1], label='Perfect Classifier', c='blue')
-    plt.plot(random_classifier_tpr_curve[:,0], random_classifier_tpr_curve[:,1], label='Random Classifier', c='red')
-    plt.plot(tpr_curve[:,0], tpr_curve[:,1], label=clf_name, c='black')
-    plt.xlim([0.0, overall_fraction_positives+0.1])
-    plt.ylim([0.0, 1.2])
-    plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
-    plt.ylabel('True Positive Rate')
-    plt.title('{} - True Positive Rate vs Fraction of data'.format(clf_name))
-    plt.legend(loc="lower right")"""
 
 
 def roc_pu(clf_results):
