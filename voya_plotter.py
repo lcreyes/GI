@@ -2,7 +2,6 @@ import logging
 from os import system
 
 import pandas
-import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.calibration
 import sklearn.preprocessing
@@ -22,10 +21,10 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
-def pr_in_ranking(clf_results, ranking_Frac=0.2):
-    y_test = clf_results["y_test"]
-    y_pred = clf_results["y_pred"]
-
+def pr_in_ranking(clf, X_test, y_test, ranking_Frac=0.3):
+    
+    y_pred = clf.predict_proba(X_test)[:, 1]
+        
     ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
     ytuple = ytuple.sort(columns='prob', ascending=False)
 
@@ -44,7 +43,9 @@ def pr_in_ranking(clf_results, ranking_Frac=0.2):
 def prVSranking_curve(clf_results):
   
     clf_name = clf_results['clf_name']
-    y_test = clf_results["y_test"]
+    clf = clf_results['clf']
+    y_test = clf_results['y_test']
+    X_test = clf_results['X_test']
     num_positives_total = np.sum(y_test)
     num_total = y_test.size
   
@@ -54,7 +55,7 @@ def prVSranking_curve(clf_results):
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
     for r in np.linspace(0, 1., num=51):
-        pr_curve = np.vstack((pr_curve, np.asarray((r, pr_in_ranking(clf_results, r)))))
+        pr_curve = np.vstack((pr_curve, np.asarray((r, pr_in_ranking(clf, X_test, y_test, r)))))
 
     # Plot curve
     seaborn.set_style("whitegrid")
@@ -433,7 +434,7 @@ def pu_search_result(result_file, fig=None):
     :return:
     """
 
-    results_df = pd.read_csv(result_file)
+    results_df = pandas.read_csv(result_file)
 
     results_table = results_df.groupby(["clf", "gamma"], as_index=False).agg(['mean', 'std', 'count'])
     colors = seaborn.color_palette("Set2", 10)
@@ -474,7 +475,7 @@ def pu_search_result_fixed(result_file, err_bars='stderr'):
     :return:
     """
 
-    results_df = pd.read_csv(result_file)
+    results_df = pandas.read_csv(result_file)
 
     results_table = results_df
     colors = seaborn.color_palette("Set2", 10)

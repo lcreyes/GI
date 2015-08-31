@@ -151,7 +151,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
+            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=voya_plotter.pr_in_ranking,
                                n_jobs=config['num_cores'])
 
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
