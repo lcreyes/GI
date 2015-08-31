@@ -52,6 +52,17 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         local_y_pred = np.asarray(ranking_subset['prob'])
         local_y_pred_label = np.asarray(ranking_subset['pred_label'])
         local_X_test = np.asarray(ranking_subset[feature_labels])
+        num_testPositives_total = np.sum(y_test)
+        num_predPositives_inRanking = np.sum(local_y_pred_label)
+        num_truePositives_inRanking = np.sum(local_y_test*local_y_pred_label)
+        num_testPositives_inRanking_perfectClassifier = min(num_testPositives_total, int(len(y_test)*ranking_Frac))
+        print num_testPositives_total, num_predPositives_inRanking, num_truePositives_inRanking, num_testPositives_inRanking_perfectClassifier
+        local_recall = num_truePositives_inRanking/num_testPositives_inRanking_perfectClassifier
+        local_precision = num_truePositives_inRanking/num_predPositives_inRanking
+        local_f1 = 2.*local_precision*local_recall/(local_precision+local_recall)
+        clf_results['local_precision'] = local_precision
+        clf_results['local_recall'] = local_recall
+        clf_results['local_f1'] = local_f1
         if auc_folds > 1:
             scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
             clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
@@ -62,6 +73,7 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
             clf_results['ranking_Frac'] = ranking_Frac
         else:
             clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
+        
 
             
 
@@ -126,8 +138,10 @@ def results_dict_to_data_frame(results_dict):
     """
 
     results_table_rows = [row for row in results_dict.values()]
-    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'local_auc_score', 'ranking_Frac']).sort('clf_name')
+    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'local_auc_score', 
+                     'ranking_Frac', 'local_recall', 'local_precision', 'local_f1']).sort('clf_name')
     results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 
-                                 'local_auc_score': 'Local AUC Score', 'ranking_Frac': 'Fraction of Events in Local'}, inplace=True)
+                                 'local_auc_score': 'Local AUC Score', 'local_precision': 'Local Precision',
+                                 'local_recall':'Local Recall', 'local_f1': 'Local F1', 'ranking_Frac': 'Fraction of Events in Local'}, inplace=True)
 
     return results_table
