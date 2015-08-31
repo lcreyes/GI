@@ -52,6 +52,18 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         local_y_pred = np.asarray(ranking_subset['prob'])
         local_y_pred_label = np.asarray(ranking_subset['pred_label'])
         local_X_test = np.asarray(ranking_subset[feature_labels])
+        if auc_folds > 1:
+            scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
+            clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
+            clf_results['local_auc_score'] = scores.mean()
+            clf_results['local_auc_std'] = scores.std()
+            clf_results['local_auc_std_err'] = scores.std()/np.sqrt(auc_folds)
+            clf_results['local_auc_folds'] = auc_folds
+            clf_results['ranking_Frac'] = ranking_Frac
+        else:
+            clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
+
+            
 
     if auc_folds > 1:
         scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=auc_folds, scoring='roc_auc')
@@ -60,17 +72,9 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['auc_std'] = scores.std()
         clf_results['auc_std_err'] = scores.std()/np.sqrt(auc_folds)
         clf_results['auc_folds'] = auc_folds
-        scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
-        clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
-        clf_results['local_auc_score'] = scores.mean()
-        clf_results['local_auc_std'] = scores.std()
-        clf_results['local_auc_std_err'] = scores.std()/np.sqrt(auc_folds)
-        clf_results['local_auc_folds'] = auc_folds
-        clf_results['ranking_Frac'] = ranking_Frac
         
     else:
         clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
-        clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
         
 
     #clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
