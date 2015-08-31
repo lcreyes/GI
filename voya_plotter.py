@@ -21,7 +21,7 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
-def pr_in_ranking(clf, X_test, y_test, ranking_Frac=0.3):
+def pr_in_ranking(clf, X_test, y_test, ranking_Frac=0.2):
     
     y_pred = clf.predict_proba(X_test)[:, 1]
         
