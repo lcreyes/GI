@@ -21,7 +21,7 @@ except ImportError:
     roc_pu_enabled = False
 
 
-def all_benchmarks(clf_results, out_path, auc_folds=1, rankingFrac=None):
+def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
     """ Runs all the benchmarks for given clf result saving the output to out_path
 
     Current classifier structure for plots is make a function in voya_plotter and call it here currently plots are
@@ -41,18 +41,17 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, rankingFrac=None):
     clf = clf_results["clf"]
     X_test = clf_results["X_test"]
 
-    if rankingFrac is not None:
-        num_points_inRank = int(len(y_test)*rankingFrac)
+    if ranking_Frac is not None:
+        num_points_inRank = int(len(y_test)*ranking_Frac)
         feature_labels = ['feature {}'.format(i) for i in range(0, X_test.shape[1])]
         ranking_tuple = pandas.DataFrame(np.column_stack((y_pred, y_pred_label, y_test, X_test)), 
                                  columns=['prob', 'pred_label', 'label']+feature_labels)
         ranking_tuple = ranking_tuple.sort(columns='prob', ascending=False)
-        ranking_subset = ranking_tuple[0:num_points_inRank,:]
-        y_test = np.asarray(ranking_subset['label'])
-        y_pred = np.asarray(ranking_subset['prob'])
-        y_pred_label = np.asarray(ranking_subset['pred_label'])
-        X_test = np.asarray(ranking_subset[feature_labels])
-        
+        ranking_subset = ranking_tuple.iloc[0:num_points_inRank,:]
+        local_y_test = np.asarray(ranking_subset['label'])
+        local_y_pred = np.asarray(ranking_subset['prob'])
+        local_y_pred_label = np.asarray(ranking_subset['pred_label'])
+        local_X_test = np.asarray(ranking_subset[feature_labels])
 
     if auc_folds > 1:
         scores = sklearn.cross_validation.cross_val_score(clf, X_test, y_test, cv=auc_folds, scoring='roc_auc')
@@ -61,13 +60,23 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, rankingFrac=None):
         clf_results['auc_std'] = scores.std()
         clf_results['auc_std_err'] = scores.std()/np.sqrt(auc_folds)
         clf_results['auc_folds'] = auc_folds
+        scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
+        clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))
+        clf_results['local_auc_score'] = scores.mean()
+        clf_results['local_auc_std'] = scores.std()
+        clf_results['local_auc_std_err'] = scores.std()/np.sqrt(auc_folds)
+        clf_results['local_auc_folds'] = auc_folds
+        clf_results['ranking_Frac'] = ranking_Frac
+        
     else:
         clf_results['auc_score'] = sklearn.metrics.roc_auc_score(y_test, y_pred)
+        clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
+        
 
+    #clf_results['f1_score'] = sklearn.metrics.f1_score(y_test, y_pred_label)
+    #clf_results['precision'] = sklearn.metrics.precision_score(y_test, y_pred_label)
+    #clf_results['recall'] = sklearn.metrics.recall_score(y_test, y_pred_label)
 
-
-    voya_logger.info(sklearn.metrics.classification_report(y_test, y_pred_label))
-    #clf_results['report'] = report
     
     if out_path is not None:  # output plots to out_path
         voya_logger.debug('Generating Reliability Curve plot')
@@ -86,18 +95,18 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, rankingFrac=None):
         # voya_plotter.plot_boundary(clf_results, runPCA=True)
         # plt.savefig(os.path.join(out_path, 'boundary__{}'.format(clf_name)), bbox_inches='tight')
 
-        voya_logger.debug('Generating roc curve cv')
-        voya_plotter.roc_curve_cv(clf_results)
-        plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
+        #voya_logger.debug('Generating roc curve cv')
+        #voya_plotter.roc_curve_cv(clf_results)
+        #plt.savefig(os.path.join(out_path, 'roc_cv__{}'.format(clf_name)), bbox_inches='tight')
 
         voya_logger.debug('Generating prVSranking curve plot')
         voya_plotter.prVSranking_curve(clf_results)
         plt.savefig(os.path.join(out_path, 'prVsRank__{}'.format(clf_name)), bbox_inches='tight')
 
-        if roc_pu_enabled:
-            voya_logger.debug('Generating PU ROC curve plot')
-            voya_plotter.roc_pu(clf_results)
-            plt.savefig(os.path.join(out_path, 'roc_pu__{}'.format(clf_name)), bbox_inches='tight')
+        #if roc_pu_enabled:
+            #voya_logger.debug('Generating PU ROC curve plot')
+            #voya_plotter.roc_pu(clf_results)
+            #plt.savefig(os.path.join(out_path, 'roc_pu__{}'.format(clf_name)), bbox_inches='tight')
 
         plt.close("all")  # perhaps a bad idea to put a close all here but all the plots will remain open otherwise
 
@@ -113,7 +122,8 @@ def results_dict_to_data_frame(results_dict):
     """
 
     results_table_rows = [row for row in results_dict.values()]
-    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'report']).sort('clf_name')
-    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 'report': 'Score Report'}, inplace=True)
+    results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'local_auc_score', 'ranking_Frac']).sort('clf_name')
+    results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 
+                                 'local_auc_score': 'Local AUC Score', 'ranking_Frac': 'Fraction of Events in Local'}, inplace=True)
 
     return results_table

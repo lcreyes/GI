@@ -74,6 +74,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         "random_forest_tree_plot": False,
         "auc_folds": 1,
         'u_to_p_ratio': False,
+        'ranking_Frac': None,
+        'include_neg_inTrain': True,
     }
 
     default_config.update(config)
@@ -162,6 +164,9 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         y_pred_label = clf_fitted.predict(X_test)
 
+        ranking_Frac = config["ranking_Frac"]
+        
+            
         clf_results.update({
             'y_pred': y_pred,
             'y_pred_label': y_pred_label,
@@ -175,9 +180,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         })
 
         voya_logger.info("Benchmarking {}".format(clf_name))
-        benchmarks.all_benchmarks(clf_results, out_path,
-                                  config["auc_folds"])  # TODO (ryan) split this up now into benchmarks and plots?
-
+        benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"],  # TODO (ryan) split this up now into benchmarks and plots?
+                                  config['ranking_Frac'])
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')
@@ -261,6 +265,7 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
         'search_live_plot': False,
         'constant_test_train': True,  # otherwise will resplit every run_per_search
         'test_neg_to_pos_ratio': None,
+        'includes_neg_inTrain': False,
     }
 
     default_config.update(config)
@@ -273,7 +278,8 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
             df = config['data_file']
 
         df_test, df_train = datasetup.split_test_train_df_pu(df, config['test_size'], 
-                                                             test_neg_to_pos_ratio=config['test_neg_to_pos_ratio'])
+                                                             test_neg_to_pos_ratio=config['test_neg_to_pos_ratio'],
+                                                             includes_neg_inTrain=config['includes_neg_inTrain'])
 
         config["test_df"] = df_test
         config["train_df"] = df_train

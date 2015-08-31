@@ -86,7 +86,7 @@ def scale_features(X):
     return X_scaled
 
 
-def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_original_labels=False):
+def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_original_labels=False, includes_neg_inTrain=False):
     """ Splits the data frame containing P, N and U labels into a training and testing dataframes, performing a
     random shuffle on the positives.
 
@@ -112,20 +112,26 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
     positives_test = positives[:num_positives_test]
     positives_train = positives[num_positives_test:]
 
-    if test_neg_to_pos_ratio is not None:  # default split i.e 80:20
-        num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
-    elif test_neg_to_pos_ratio == 'all':  # all negatives go in test
-        num_negatives_test = int(len(negatives.index))
-    else:  # negatives in test in test_neg_to_pos_ratio, rest go into train as unlabelled
+    if test_neg_to_pos_ratio is not None:  
+        if test_neg_to_pos_ratio == 'all':
+            num_negatives_test = int(len(negatives.index))
+        else: 
+            num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
+    else: # default split i.e 80:20 
         num_negatives_test = int(len(negatives.index) * test_size)
         
     negatives_test = negatives[:num_negatives_test]
     negatives_train = negatives[num_negatives_test:]
 
-    df_train = positives_train.append([unlabeled, negatives_train], ignore_index=True)
+    if includes_neg_inTrain:
+        df_train = positives_train.append([unlabeled, negatives_train], ignore_index=True)
+        assert set(df_train['label'].unique()) == set((1, 0, -1)), df_train.label.value_counts()
+    else:
+        df_train = positives_train.append([unlabeled], ignore_index=True)
+        assert set(df_train['label'].unique()) == set((1, 0)), df_train.label.value_counts()
+          
     df_test = positives_test.append(negatives_test, ignore_index=True)
 
-    assert set(df_train['label'].unique()) == set((1, 0, -1)), df_train.label.value_counts()
     assert set(df_test['label'].unique()) == set((1, -1)), df_test.label.value_counts()
 
     if not keep_original_labels:
