@@ -112,9 +112,11 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
     positives_test = positives[:num_positives_test]
     positives_train = positives[num_positives_test:]
 
-    if test_neg_to_pos_ratio is not None:
+    if test_neg_to_pos_ratio is not None:  # default split i.e 80:20
         num_negatives_test = int(num_positives_test*test_neg_to_pos_ratio)
-    else:
+    elif test_neg_to_pos_ratio == 'all':  # all negatives go in test
+        num_negatives_test = int(len(negatives.index))
+    else:  # negatives in test in test_neg_to_pos_ratio, rest go into train as unlabelled
         num_negatives_test = int(len(negatives.index) * test_size)
         
     negatives_test = negatives[:num_negatives_test]
@@ -130,6 +132,9 @@ def split_test_train_df_pu(df, test_size, test_neg_to_pos_ratio=None, keep_origi
         # for comparisons unlabelled and negative must be the same value, the classifiers just treat them differently
         df_test.loc[df_test.label == -1, 'label'] = 0
         assert set(df_test['label'].unique()) == set((1, 0))
+
+        df_train.loc[df_train.label == -1, 'label'] = 0
+        assert set(df_train['label'].unique()) == set((1, 0))
 
     return df_test, df_train
 

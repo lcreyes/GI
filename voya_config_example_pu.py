@@ -14,7 +14,7 @@ config = {
     'voya_mode': 'bench',
     "data_file": "data/test1_uni_f.csv",
     "out_path": "output/pu/",
-    "num_folds": 2,
+    "num_folds": 5,
     "test_size": 0.2,
     "pu_learning": True,
     "num_cores": -1,  # -1 means num_cores available
@@ -33,11 +33,6 @@ svc_estimator = sklearn.svm.SVC(C=2.5, kernel='linear', class_weight='auto', pro
 
 rf_estimator = sklearn.ensemble.RandomForestClassifier(max_depth=7, n_estimators=70, n_jobs=config["num_cores"])
 
-RFBagging = sklearn.pipeline.Pipeline([
-    ('rf', rf_estimator),
-    ('po', pulearning.PUBagging(rf_estimator, max_samples=0.1, n_estimators=100, n_jobs=config["num_cores"])),
-])
-
 RFDoubleWeight = sklearn.pipeline.Pipeline([
     ('rf', rf_estimator),
     ('dw', pulearning.PULearnByDoubleWeighting(rf_estimator)),
@@ -51,20 +46,20 @@ classifiers = {
     #'PosOnly(E&N2008)': pulearning.PosOnly(svc_estimator, hold_out_ratio=0.2, ),
     # 'Bagging SVC': sklearn.ensemble.BaggingClassifier(svc_estimator, n_estimators=100, max_samples=0.3,
     #                                                   n_jobs=config["num_cores"]),
-    'RF_Bagging': RFBagging,
+    # 'RF_Bagging': RFBagging,
     # 'RFDoubleWeight': pulearning.PULearnByDoubleWeighting(rf_estimator),
     # 'Bagging LR': sklearn.ensemble.BaggingClassifier(LR_estimator, n_jobs=config["num_cores"]),
     # 'SVM_DoubleWeight(E&N2008)': pulearning.PULearnByDoubleWeighting(svc_estimator),
     #  'Bagging LR': pulearning.PUBagging(LR_estimator, n_estimators=20, max_samples=0.5),
-    #  'SVM_DoubleWeight(E&N2008)': pulearning.SVMDoubleWeight(svc_estimator),
+     'SVM_DoubleWeight(E&N2008)': pulearning.PULearnByDoubleWeighting(svc_estimator),
 }
 
 classifiers_gridparameters = {
-    'PosOnly(E&N2008)': None,
-    'RF_DoubleWeight(E&N2008)': {"rf__n_estimators": [70], 'rf__max_depth': [7]},
-    'RF_Bagging': {'po__n_estimators': [100], 'po__max_samples': [0.01, 0.03, 0.05, 0.1, 0.3, 0.5],
-                   "rf__n_estimators": [10, 30, 50, 70, 100], 'rf__max_depth': [1, 2, 3, 4, 5, 7, 10]},
-    'Bagging SVC': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
-    'Bagging LR': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
+    # 'PosOnly(E&N2008)': None,
+    # 'RF_DoubleWeight(E&N2008)': {"rf__n_estimators": [70], 'rf__max_depth': [7]},
+    # 'RF_Bagging': {'po__n_estimators': [100], 'po__max_samples': [0.01, 0.03, 0.05, 0.1, 0.3, 0.5],
+    #                "rf__n_estimators": [10, 30, 50, 70, 100], 'rf__max_depth': [1, 2, 3, 4, 5, 7, 10]},
+    # 'Bagging SVC': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
+    # 'Bagging LR': {'n_estimators': [30, 100], 'max_samples': [0.1, 0.3, 0.7]},
     'SVM_DoubleWeight(E&N2008)': None,
 }
