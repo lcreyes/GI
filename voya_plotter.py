@@ -59,7 +59,7 @@ class PrInRanking(object):
         
     def frac_to_Xpercent(self, clf, X_test, y_test):
         
-        for r in np.linspace(0, 1., num=101):
+        for r in np.linspace(0, 1., num=1001):
             ranking = PrInRanking(r)
             if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
                 break;

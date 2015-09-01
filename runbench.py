@@ -351,10 +351,11 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
             plt.clf()
             fig = voya_plotter.pu_search_result(save_file, fig)
             plt.draw()
-
-        voya_logger.info('Generating prVSranking all methods plot')
-        voya_plotter.prVSranking_methodComparison(results_dict)
-        plt.savefig(os.path.join(out_path, 'prVsRankComparison__Gamma__{}.png'.format(gamma)), bbox_inches='tight')
+     
+        if out_path is not None: 
+            voya_logger.info('Generating prVSranking all methods plot')
+            voya_plotter.prVSranking_methodComparison(results_dict)
+            plt.savefig(os.path.join(out_path, 'prVsRankComparison__Gamma__{}.png'.format(gamma)), bbox_inches='tight')
 
 
 class VoyaConfigError(Exception):
