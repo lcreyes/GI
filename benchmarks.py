@@ -44,22 +44,27 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
     if ranking_Frac is not None:
         num_points_inRank = int(len(y_test)*ranking_Frac)
         feature_labels = ['feature {}'.format(i) for i in range(0, X_test.shape[1])]
-        ranking_tuple = pandas.DataFrame(np.column_stack((y_pred, y_pred_label, y_test, X_test)), 
+
+        ranking_tuple = pandas.DataFrame(np.column_stack((y_pred, y_pred_label, y_test, X_test)),
                                  columns=['prob', 'pred_label', 'label']+feature_labels)
         ranking_tuple = ranking_tuple.sort(columns='prob', ascending=False)
         ranking_subset = ranking_tuple.iloc[0:num_points_inRank,:]
+
         local_y_test = np.asarray(ranking_subset['label'])
         local_y_pred = np.asarray(ranking_subset['prob'])
         local_y_pred_label = np.asarray(ranking_subset['pred_label'])
         local_X_test = np.asarray(ranking_subset[feature_labels])
+
         num_testPositives_total = np.sum(y_test)
         num_predPositives_inRanking = np.sum(local_y_pred_label)
         num_truePositives_inRanking = np.sum(local_y_test*local_y_pred_label)
         num_testPositives_inRanking_perfectClassifier = min(num_testPositives_total, int(len(y_test)*ranking_Frac))
         print num_testPositives_total, num_predPositives_inRanking, num_truePositives_inRanking, num_testPositives_inRanking_perfectClassifier
+
         local_recall = num_truePositives_inRanking/num_testPositives_inRanking_perfectClassifier
         local_precision = num_truePositives_inRanking/num_predPositives_inRanking
         local_f1 = 2.*local_precision*local_recall/(local_precision+local_recall)
+
         clf_results['local_precision'] = local_precision
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
@@ -67,6 +72,7 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         ranking = voya_plotter.PrInRanking(ranking_Frac)
         clf_results['local_pr'] = ranking.pr_in_ranking(clf, X_test, y_test)
         clf_results['ranking_Frac'] = ranking_Frac
+
         if auc_folds > 1:
             scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
             clf_results['pretty_local_auc_score'] = "%0.2f(+/-%0.2f)" % (scores.mean(), scores.std()/np.sqrt(auc_folds))

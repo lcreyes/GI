@@ -23,14 +23,16 @@ except ImportError:
 
 class PrInRanking(object):
 
-    def __init__(self, ranking_Frac=1.0):
+    def __init__(self, ranking_Frac=1.0):  # defined here so default can be set in config
         if ranking_Frac is None:
             self.ranking_Frac = 1.0
         else:
             self.ranking_Frac = ranking_Frac
-            
 
-    def pr_in_ranking(self, clf, X_test, y_test):
+    def pr_in_ranking(self, clf, X_test, y_test, ranking_Frac=None):
+
+        if ranking_Frac is None:
+            ranking_Frac = self.ranking_Frac
 
         y_pred = clf.predict_proba(X_test)[:, 1]
 
@@ -38,8 +40,7 @@ class PrInRanking(object):
         ytuple = ytuple.sort(columns='prob', ascending=False)
 
         num_positives_total = np.sum(y_test)
-        num_total = y_test.size
-
+        num_total = len(y_test)
 
         ranking_size = int(num_total*self.ranking_Frac)
         rankedSet = ytuple.iloc[0:ranking_size, :]
@@ -48,42 +49,54 @@ class PrInRanking(object):
 
         return positive_rate
 
+def gen_pr_vs_frac(clf_results):
+    y_test = clf_results['y_test']
+    y_pred = clf_results['y_pred']
 
+    df = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
+    df.sort(columns='prob', ascending=False, inplace=True)
 
+    num_positives_total = float(np.sum(y_test))
+    num_total = float(len(y_test))
 
-def prVSranking_curve(clf_results):
+    num_pos_per = np.cumsum(df.label.values)
+    num_pos_frac = num_pos_per / num_positives_total
+
+    num_total_frac = np.arange(num_total) / num_total
+
+    return num_total_frac, num_pos_frac
+
+def prVSranking_curve(clf_results, fig=None):
   
     clf_name = clf_results['clf_name']
-    clf = clf_results['clf']
     y_test = clf_results['y_test']
-    X_test = clf_results['X_test']
-    num_positives_total = np.sum(y_test)
-    num_total = y_test.size
-  
-    pr_curve = np.asarray((0., 0.))  # first point is always (0, 0)
+    y_pred = clf_results['y_pred']
+
+    num_positives_total = float(np.sum(y_test))
+    num_total = float(len(y_test))
   
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
-    for r in np.linspace(0, 1., num=51):
-        ranking = PrInRanking(r)
-        pr_curve = np.vstack((pr_curve, np.asarray((r, ranking.pr_in_ranking(clf, X_test, y_test)))))
+    num_total_frac, num_pos_frac = gen_pr_vs_frac(clf_results)
 
     # Plot curve
-    seaborn.set_style("whitegrid")
-    plt.figure(figsize=(7, 7))
+    if fig is None:
+        plt.figure(figsize=(7, 7))
+        seaborn.set_style("whitegrid")
 
     #    plt.subplot(211)
     plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
     plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
-    plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name, c='black')
+    plt.plot(num_total_frac, num_pos_frac, label=clf_name, c='black')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
     plt.ylabel('Fracion of positives found by Classifier')
     plt.title('{} - Positives Found vs Fraction of data'.format(clf_name))
     plt.legend(loc="lower right")
-    return pr_curve
+    return num_total_frac, num_pos_frac
+
 
 def roc_pu(clf_results):
     nboot = 2000
@@ -164,34 +177,31 @@ def roc_pu(clf_results):
 
 def prVSranking_methodComparison(results_dict):
 
-    seaborn.set_style("whitegrid")
-    plt.figure(figsize=(7, 7))
-
-    
-    for i, (clf_name, clf_results) in enumerate(results_dict.iteritems()):
-        y_test = clf_results['y_test']
-        #auc_score = clf_results['auc_score']
-        #print clf_name, auc_score
-        num_positives_total = np.sum(y_test)
-        num_total = y_test.size
-        pr_curve = prVSranking_curve(clf_results)
-        #print pr_curve
-        plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name)
+    y_test = results_dict[results_dict.keys()[0]]['y_test']
+    num_positives_total = float(np.sum(y_test))
+    num_total = float(len(y_test))
 
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
+    plt.figure(figsize=(7, 7))
+    seaborn.set_style("whitegrid")
+
+    #    plt.subplot(211)
     plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
     plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
-
-    plt.xlim([0.0, float(num_positives_total) / num_total + 0.1])
+    plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
     plt.ylabel('Fracion of positives found by Classifier')
-    plt.title('Positives Found vs Fraction of data')
+
+    colors = seaborn.color_palette("Set2", 10)
+    for i, (clf_name, clf_results) in enumerate(results_dict.iteritems()):
+        num_total_frac, num_pos_frac = gen_pr_vs_frac(clf_results)
+        plt.plot(num_total_frac, num_pos_frac, label=clf_name, c=colors[i])
+
     plt.legend(loc="lower right")
-                
-    
+
 
 def reliability_curve(clf_results):
     """
