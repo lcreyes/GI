@@ -346,9 +346,9 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
     if not os.path.exists(save_file) or not config['soft_search_run']:
         with open(save_file, 'wb') as f:
             if config['constant_test_train']:
-                f.write('gamma, folds, clf, auc, auc_std, auc_stderr, ranking_Frac, local_auc, local_auc_std, local_auc_stderr, local_pr\n')
+                f.write('gamma, folds, clf, auc, auc_std, auc_stderr, ranking_Frac, local_auc, local_auc_std, local_auc_stderr, local_pr, , frac_to_desRet\n')
             else:
-                f.write('gamma, clf, auc, local_pr\n')
+                f.write('gamma, clf, auc, local_pr, frac_to_desRet\n')
 
     fig = None
 
@@ -369,9 +369,10 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
                 csv_row = (gamma, results_dict[clf_name]['auc_folds'], clf_name, results_dict[clf_name]['auc_score'], 
                            results_dict[clf_name]['auc_std'], results_dict[clf_name]['auc_std_err'], results_dict[clf_name]['ranking_Frac'],
                            results_dict[clf_name]['local_auc_score'], results_dict[clf_name]['local_auc_std'], 
-                           results_dict[clf_name]['local_auc_std_err'], results_dict[clf_name]['local_pr'])
+                           results_dict[clf_name]['local_auc_std_err'], results_dict[clf_name]['local_pr'],
+                           results_dict[clf_name]['frac_to_ret'])
             else:
-                csv_row = (gamma, clf_name, results_dict[clf_name]['auc_score'], results_dict[clf_name]['local_pr'])
+                csv_row = (gamma, clf_name, results_dict[clf_name]['auc_score'], results_dict[clf_name]['local_pr'], results_dict[clf_name]['frac_to_ret'])
 
             csv_output.append(csv_row)
 
