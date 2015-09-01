@@ -182,6 +182,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"],  # TODO (ryan) split this up now into benchmarks and plots?
                                   config['ranking_Frac'])
+                                                              
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')
@@ -191,6 +192,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
                 voya_plotter.plot_trees(clf_results['clf'], feature_names)
 
         results_table_rows[clf_name] = clf_results
+
 
     voya_logger.info("\n#######\nResults\n#######")
     num_positives_y_train = y_train.sum()
@@ -271,6 +273,11 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
     default_config.update(config)
     config = default_config
 
+    out_path = config['out_path']
+    if out_path is not None:
+        if not os.path.isdir(out_path):
+            os.makedirs(out_path)
+
     if config['constant_test_train']:  # Split test / train so we have a constant testing set
         try:
             df = datasetup.load_data(config['data_file'])
@@ -291,7 +298,6 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
 
     save_file = config['search_results_file']
     search_range = config['search_range']
-    runs_per_search = config['runs_per_search']
 
     voya_logger.info('Starting search benchmark')
 
@@ -307,35 +313,38 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
     for gamma_num, gamma in enumerate(search_range):  # gamma is a single value in the search range
         voya_logger.info('Running classifiers for gamma={} ({}/{})'.format(gamma, gamma_num + 1, len(search_range)))
 
-        for i in xrange(runs_per_search):
-            config.update({"u_to_p_ratio": gamma})
+        config.update({"u_to_p_ratio": gamma})
 
-            if config['constant_test_train']:
-                config["train_df"] = datasetup.downsample_pu_df(df_train, config["u_to_p_ratio"])
+        if config['constant_test_train']:
+            config["train_df"] = datasetup.downsample_pu_df(df_train, config["u_to_p_ratio"])
 
-            results_dict = run_benchmark(config, classifiers, classifiers_gridparameters)
+        results_dict = run_benchmark(config, classifiers, classifiers_gridparameters)
 
-            # Output
-            csv_output = []
-            for clf_name in classifiers.keys():
-                if config['auc_folds']>1:
-                    csv_row = (gamma, results_dict[clf_name]['auc_folds'], clf_name, results_dict[clf_name]['auc_score'], 
-                               results_dict[clf_name]['auc_std'], results_dict[clf_name]['auc_std_err'], results_dict[clf_name]['ranking_Frac'],
-                               results_dict[clf_name]['local_auc_score'], results_dict[clf_name]['local_auc_std'], 
-                               results_dict[clf_name]['local_auc_std_err'], results_dict[clf_name]['local_pr'])
-                else:
-                    csv_row = (gamma, clf_name, results_dict[clf_name]['auc_score'], results_dict[clf_name]['local_pr'])
+        # Output
+        csv_output = []
+        for clf_name in classifiers.keys():
+            if config['auc_folds']>1:
+                csv_row = (gamma, results_dict[clf_name]['auc_folds'], clf_name, results_dict[clf_name]['auc_score'], 
+                           results_dict[clf_name]['auc_std'], results_dict[clf_name]['auc_std_err'], results_dict[clf_name]['ranking_Frac'],
+                           results_dict[clf_name]['local_auc_score'], results_dict[clf_name]['local_auc_std'], 
+                           results_dict[clf_name]['local_auc_std_err'], results_dict[clf_name]['local_pr'])
+            else:
+                csv_row = (gamma, clf_name, results_dict[clf_name]['auc_score'], results_dict[clf_name]['local_pr'])
 
-                csv_output.append(csv_row)
+            csv_output.append(csv_row)
 
-            with open(save_file, 'ab') as f:
-                csv_f = csv.writer(f)
-                csv_f.writerows(csv_output)
+        with open(save_file, 'ab') as f:
+            csv_f = csv.writer(f)
+            csv_f.writerows(csv_output)
 
-            if config['search_live_plot']:
-                plt.clf()
-                fig = voya_plotter.pu_search_result(save_file, fig)
-                plt.draw()
+        if config['search_live_plot']:
+            plt.clf()
+            fig = voya_plotter.pu_search_result(save_file, fig)
+            plt.draw()
+        
+        voya_logger.info('Generating prVSranking curve plot')
+        voya_plotter.prVSranking_methodComparison(results_dict)
+        plt.savefig(os.path.join(out_path, 'prVsRankComparison__Gamma__{}.png'.format(gamma)), bbox_inches='tight')
 
 
 class VoyaConfigError(Exception):
