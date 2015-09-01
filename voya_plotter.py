@@ -200,7 +200,7 @@ def prVSranking_methodComparison(results_dict):
     num_total = float(len(y_test))
 
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
-    random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
+    random_classifier_pr_curve = np.array([[0., 0.], [1., 1.0]])
 
     plt.figure(figsize=(7, 7))
     seaborn.set_style("whitegrid")
