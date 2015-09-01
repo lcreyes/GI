@@ -23,13 +23,14 @@ except ImportError:
 
 class PrInRanking(object):
 
-    def __init__(self, ranking_Frac=0.2):
-        self.ranking_Frac = 0.2
-
-    def pr_in_ranking(self, clf, X_test, y_test, ranking_Frac=None):
-
+    def __init__(self, ranking_Frac=1.0):
         if ranking_Frac is None:
-            ranking_Frac = self.ranking_Frac
+            self.ranking_Frac = 1.0
+        else:
+            self.ranking_Frac = ranking_Frac
+            
+
+    def pr_in_ranking(self, clf, X_test, y_test):
 
         y_pred = clf.predict_proba(X_test)[:, 1]
 
@@ -40,7 +41,7 @@ class PrInRanking(object):
         num_total = y_test.size
 
 
-        ranking_size = int(num_total*ranking_Frac)
+        ranking_size = int(num_total*self.ranking_Frac)
         rankedSet = ytuple.iloc[0:ranking_size, :]
         num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
         positive_rate = float(num_positives_inRank) / num_positives_total
@@ -63,7 +64,8 @@ def prVSranking_curve(clf_results):
     random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
 
     for r in np.linspace(0, 1., num=51):
-        pr_curve = np.vstack((pr_curve, np.asarray((r, pr_in_ranking(clf, X_test, y_test, r)))))
+        ranking = PrInRanking(r)
+        pr_curve = np.vstack((pr_curve, np.asarray((r, ranking.pr_in_ranking(clf, X_test, y_test)))))
 
     # Plot curve
     seaborn.set_style("whitegrid")
