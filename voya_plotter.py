@@ -64,7 +64,7 @@ class PrInRanking(object):
             if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
                 break;
                     
-        return r
+        return -r
 
 
 def gen_pr_vs_frac(clf_results):

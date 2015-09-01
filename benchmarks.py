@@ -67,7 +67,7 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
         ranking = voya_plotter.PrInRanking(ranking_Frac)
-        clf_results['frac_to_ret'] = ranking.frac_to_Xpercent(clf, X_test, y_test)
+        clf_results['frac_to_ret'] = -ranking.frac_to_Xpercent(clf, X_test, y_test) #function returns a negative value
         clf_results['local_pr'] = ranking.pr_in_ranking(clf, X_test, y_test)
         clf_results['ranking_Frac'] = ranking_Frac
 
