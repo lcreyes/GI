@@ -21,13 +21,18 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
+
 class PrInRanking(object):
 
-    def __init__(self, ranking_Frac=1.0):
+    def __init__(self, ranking_Frac=1.0, desired_retention = 0.8):
         if ranking_Frac is None:
             self.ranking_Frac = 1.0
         else:
             self.ranking_Frac = ranking_Frac
+        if desired_retention is None:
+            self.desired_retention = 0.8
+        else:
+            self.desired_retention = desired_retention
             
 
     def pr_in_ranking(self, clf, X_test, y_test):
@@ -47,6 +52,17 @@ class PrInRanking(object):
         positive_rate = float(num_positives_inRank) / num_positives_total
 
         return positive_rate
+        
+    def frac_to_Xpercent(self, clf, X_test, y_test):
+        
+        for r in np.linspace(0, 1., num=101):
+            ranking = PrInRanking(r)
+            if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
+                break;
+            print 'A {} fracion of ranking is required to get to desired retention of {}'.format(r, self.desired_retention)
+                
+        return r
+
 
 
 
@@ -63,7 +79,7 @@ def prVSranking_curve(clf_results):
     pr_curve = np.asarray((0., 0.))  # first point is always (0, 0)
   
     perfect_classifier_pr_curve = np.array([[0., 0.], [float(num_positives_total) / num_total, 1.], [1., 1.]])
-    random_classifier_pr_curve = np.array([[0., 0.], [1., 0.5]])
+    no_classifier_pr_curve = np.array([[0., 0.], [1., 1.]])
 
     for r in np.linspace(0, 1., num=51):
         ranking = PrInRanking(r)
@@ -73,9 +89,8 @@ def prVSranking_curve(clf_results):
     seaborn.set_style("whitegrid")
     plt.figure(figsize=(7, 7))
 
-    #    plt.subplot(211)
     plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
-    plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
+    plt.plot(no_classifier_pr_curve[:, 0], no_classifier_pr_curve[:, 1], label='No Classifier', c='red')
     plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name, c='black')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
