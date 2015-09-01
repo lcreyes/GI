@@ -77,6 +77,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         'u_to_p_ratio': False,
         'ranking_Frac': None,
         'include_neg_inTrain': True,
+        'grisearch_metric': 'AUC',
     }
 
     default_config.update(config)
@@ -151,9 +152,18 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            ranking = voya_plotter.PrInRanking(config['ranking_Frac'])
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.pr_in_ranking,
+            ranking = voya_plotter.PrInRanking(config['ranking_Frac'], config['desired_retention'])
+            if (config['gridsearch_metric'] == 'PosRate'):
+                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.pr_in_ranking,
                                n_jobs=config['num_cores'])
+            elif (config['gridsearch_metric'] == 'Frac'):
+                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.frac_to_Xpercent,
+                               n_jobs=config['num_cores'])
+            else:
+                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
+                               n_jobs=config['num_cores'])
+                
+                
 
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
             clf_optimal_parameters = clf.best_params_
@@ -341,7 +351,7 @@ def run_search_benchmark(config, classifiers, classifiers_gridparameters):
             plt.clf()
             fig = voya_plotter.pu_search_result(save_file, fig)
             plt.draw()
-        
+
         voya_logger.info('Generating prVSranking all methods plot')
         voya_plotter.prVSranking_methodComparison(results_dict)
         plt.savefig(os.path.join(out_path, 'prVsRankComparison__Gamma__{}.png'.format(gamma)), bbox_inches='tight')

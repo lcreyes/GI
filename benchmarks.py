@@ -59,8 +59,6 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         num_predPositives_inRanking = np.sum(local_y_pred_label)
         num_truePositives_inRanking = np.sum(local_y_test*local_y_pred_label)
         num_testPositives_inRanking_perfectClassifier = min(num_testPositives_total, int(len(y_test)*ranking_Frac))
-        print num_testPositives_total, num_predPositives_inRanking, num_truePositives_inRanking, num_testPositives_inRanking_perfectClassifier
-
         local_recall = num_truePositives_inRanking/num_testPositives_inRanking_perfectClassifier
         local_precision = num_truePositives_inRanking/num_predPositives_inRanking
         local_f1 = 2.*local_precision*local_recall/(local_precision+local_recall)
@@ -68,8 +66,8 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['local_precision'] = local_precision
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
-
         ranking = voya_plotter.PrInRanking(ranking_Frac)
+        clf_results['frac_to_ret'] = ranking.frac_to_Xpercent(clf, X_test, y_test)
         clf_results['local_pr'] = ranking.pr_in_ranking(clf, X_test, y_test)
         clf_results['ranking_Frac'] = ranking_Frac
 
@@ -148,11 +146,12 @@ def results_dict_to_data_frame(results_dict):
 
     results_table_rows = [row for row in results_dict.values()]
     results_table = pandas.DataFrame(results_table_rows, columns=['clf_name', 'auc_score', 'local_auc_score', 
-                     'ranking_Frac', 'local_recall', 'local_precision', 'local_f1', 'local_pr']).sort('clf_name')
+                     'ranking_Frac', 'local_recall', 'local_precision', 'local_f1', 'local_pr', 'frac_to_ret']).sort('clf_name')
     results_table.rename(columns={'clf_name':'Classifier', 'auc_score': 'AUC Score', 
                                  'local_auc_score': 'Local AUC Score', 'local_precision': 'Local Precision',
                                  'local_recall':'Local Recall', 'local_f1': 'Local F1', 
-                                 'ranking_Frac': 'Fraction of Events in Local', 'local_pr': 'Local PosRate'}, inplace=True)
+                                 'ranking_Frac': 'Fraction of Events in Local', 'local_pr': 'Local PosRate',
+                                 'frac_to_ret': 'RankFrac to DesRetention'}, inplace=True)
 
     return results_table
 
