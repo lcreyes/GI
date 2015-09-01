@@ -59,8 +59,7 @@ class PrInRanking(object):
             ranking = PrInRanking(r)
             if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
                 break;
-            print 'A {} fracion of ranking is required to get to desired retention of {}'.format(r, self.desired_retention)
-                
+                    
         return r
 
 

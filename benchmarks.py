@@ -56,7 +56,6 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         num_predPositives_inRanking = np.sum(local_y_pred_label)
         num_truePositives_inRanking = np.sum(local_y_test*local_y_pred_label)
         num_testPositives_inRanking_perfectClassifier = min(num_testPositives_total, int(len(y_test)*ranking_Frac))
-        print num_testPositives_total, num_predPositives_inRanking, num_truePositives_inRanking, num_testPositives_inRanking_perfectClassifier
         local_recall = num_truePositives_inRanking/num_testPositives_inRanking_perfectClassifier
         local_precision = num_truePositives_inRanking/num_predPositives_inRanking
         local_f1 = 2.*local_precision*local_recall/(local_precision+local_recall)
