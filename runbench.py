@@ -77,6 +77,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
         'u_to_p_ratio': False,
         'ranking_Frac': None,
         'include_neg_inTrain': True,
+        'pr_in_ranking': 1,
     }
 
     default_config.update(config)
@@ -151,7 +152,8 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=voya_plotter.pr_in_ranking,
+            pr_in_ranking = voya_plotter.PrInRanking(config['ranking_frac'])
+            clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=pr_in_ranking,
                                n_jobs=config['num_cores'])
 
             clf_fitted = clf.fit(X_train, y_train).best_estimator_
@@ -180,7 +182,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
 
         voya_logger.info("Benchmarking {}".format(clf_name))
         benchmarks.all_benchmarks(clf_results, out_path, config["auc_folds"],  # TODO (ryan) split this up now into benchmarks and plots?
-                                  config['ranking_Frac'])
+                                  config['ranking_frac'])
         if out_path is not None:  # TODO (ryan) non conforming plots, move to benchmarks
             if config["random_forest_tree_plot"] and isinstance(clf_fitted, sklearn.ensemble.RandomForestClassifier):
                 voya_logger.debug('Generating random forrest plot')

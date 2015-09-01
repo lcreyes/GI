@@ -21,23 +21,31 @@ except ImportError:
     voya_logger.info('optunity not installed, disabled roc_pu plot')
 
 
-def pr_in_ranking(clf, X_test, y_test, ranking_Frac=0.2):
-    
-    y_pred = clf.predict_proba(X_test)[:, 1]
-        
-    ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
-    ytuple = ytuple.sort(columns='prob', ascending=False)
+class PrInRanking(object):
 
-    num_positives_total = np.sum(y_test)
-    num_total = y_test.size
+    def __init__(self, ranking_Frac=0.2):
+        self.ranking_Frac = 0.2
+
+    def pr_in_ranking(self, clf, X_test, y_test, ranking_Frac=None):
+
+        if ranking_Frac is None:
+            ranking_Frac = self.ranking_Frac
+
+        y_pred = clf.predict_proba(X_test)[:, 1]
+
+        ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
+        ytuple = ytuple.sort(columns='prob', ascending=False)
+
+        num_positives_total = np.sum(y_test)
+        num_total = y_test.size
 
 
-    ranking_size = int(num_total*ranking_Frac)
-    rankedSet = ytuple.iloc[0:ranking_size, :]
-    num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
-    positive_rate = float(num_positives_inRank) / num_positives_total
-    
-    return positive_rate    
+        ranking_size = int(num_total*ranking_Frac)
+        rankedSet = ytuple.iloc[0:ranking_size, :]
+        num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
+        positive_rate = float(num_positives_inRank) / num_positives_total
+
+        return positive_rate
 
 
 def prVSranking_curve(clf_results):

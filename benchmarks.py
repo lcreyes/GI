@@ -63,7 +63,9 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['local_precision'] = local_precision
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
-        clf_results['local_pr'] = voya_plotter.pr_in_ranking(clf, X_test, y_test)
+
+        pr_in_ranking = voya_plotter.PrInRanking(ranking_Frac)
+        clf_results['local_pr'] = pr_in_ranking(clf, X_test, y_test)
         clf_results['ranking_Frac'] = ranking_Frac
         if auc_folds > 1:
             scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring='roc_auc')
