@@ -60,7 +60,7 @@ class PrInRanking(object):
             if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
                 break;
                     
-        return r
+        return -r
 
 
 
