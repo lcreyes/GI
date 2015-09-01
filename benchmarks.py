@@ -67,7 +67,7 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
         clf_results['local_recall'] = local_recall
         clf_results['local_f1'] = local_f1
         ranking = voya_plotter.PrInRanking(ranking_Frac)
-        clf_results['frac_to_ret'] = -ranking.frac_to_Xpercent(clf, X_test, y_test) #function returns a negative value
+        #clf_results['frac_to_ret'] = -ranking.frac_to_Xpercent(clf, X_test, y_test) #function returns a negative value
         clf_results['local_pr'] = ranking.pr_in_ranking(clf, X_test, y_test)
         clf_results['ranking_Frac'] = ranking_Frac
 
@@ -78,6 +78,10 @@ def all_benchmarks(clf_results, out_path, auc_folds=1, ranking_Frac=None):
             clf_results['local_auc_std'] = scores.std()
             clf_results['local_auc_std_err'] = scores.std()/np.sqrt(auc_folds)
             clf_results['local_auc_folds'] = auc_folds
+            scores = sklearn.cross_validation.cross_val_score(clf, local_X_test, local_y_test, cv=auc_folds, scoring=ranking.frac_to_Xpercent)
+            clf_results['frac_to_ret'] = -scores.mean()            
+            clf_results['frac_to_ret_stderr'] = scores.std()/np.sqrt(auc_folds)
+            
         else:
             clf_results['local_auc_score'] = sklearn.metrics.roc_auc_score(local_y_test, local_y_pred)
         
