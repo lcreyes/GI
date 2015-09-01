@@ -152,7 +152,7 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            ranking = voya_plotter.PrInRanking(config['ranking_Frac'], config['desired_retention'])
+            ranking = lambda: voya_plotter.PrInRanking(config['ranking_Frac'], config['desired_retention'])
             if (config['gridsearch_metric'] == 'PosRate'):
                 clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.pr_in_ranking,
                                n_jobs=config['num_cores'])
