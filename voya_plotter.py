@@ -77,7 +77,7 @@ def prVSranking_curve(clf_results):
     plt.plot(perfect_classifier_pr_curve[:, 0], perfect_classifier_pr_curve[:, 1], label='Perfect Classifier', c='blue')
     plt.plot(random_classifier_pr_curve[:, 0], random_classifier_pr_curve[:, 1], label='Random Classifier', c='red')
     plt.plot(pr_curve[:, 0], pr_curve[:, 1], label=clf_name, c='black')
-    plt.xlim([0.0, float(num_positives_total) / num_total + 0.1])
+    plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Fraction of Included data (ranked in descending order of probability)')
     plt.ylabel('Fracion of positives found by Classifier')
