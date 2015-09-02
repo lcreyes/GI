@@ -50,7 +50,7 @@ class PrInRanking(object):
         num_positives_total = np.sum(y_test)
         num_total = len(y_test)
 
-        ranking_size = int(num_total*self.ranking_Frac)
+        ranking_size = int(num_total*ranking_Frac)
         rankedSet = ytuple.iloc[0:ranking_size, :]
         num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
         positive_rate = float(num_positives_inRank) / num_positives_total
@@ -59,11 +59,9 @@ class PrInRanking(object):
         
     def frac_to_Xpercent(self, clf, X_test, y_test):
         
-        for r in np.linspace(0, 1., num=1001):
-            ranking = PrInRanking(r)
-            if ranking.pr_in_ranking(clf, X_test, y_test) > self.desired_retention:
+        for r in np.linspace(0, 1., num=101):
+            if self.pr_in_ranking(clf, X_test, y_test, r) > self.desired_retention:
                 break;
-                    
         return -r
 
 

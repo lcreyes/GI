@@ -46,8 +46,6 @@ from sklearn.grid_search import GridSearchCV
 import sklearn.metrics
 import sklearn.cross_validation
 import sklearn.ensemble
-import numpy as np
-import pandas
 import docopt
 import matplotlib.pyplot as plt
 
@@ -57,36 +55,6 @@ import voya_plotter
 
 voya_logger = logging.getLogger('clairvoya')
 
-def pr_in_ranking(clf, X_test, y_test, ranking_Frac=None):
-
-    if ranking_Frac is None:
-        ranking_Frac = 0.2
-
-    y_pred = clf.predict_proba(X_test)[:, 1]
-
-    ytuple = pandas.DataFrame(np.column_stack((y_pred, y_test)), columns=['prob', 'label'])
-    ytuple = ytuple.sort(columns='prob', ascending=False)
-
-    num_positives_total = np.sum(y_test)
-    num_total = len(y_test)
-
-    ranking_size = int(num_total*ranking_Frac)
-    rankedSet = ytuple.iloc[0:ranking_size, :]
-    num_positives_inRank = rankedSet[rankedSet.label == 1].shape[0]
-    positive_rate = float(num_positives_inRank) / num_positives_total
-
-    return positive_rate
-
-
-def frac_to_Xpercent(clf, X_test, y_test):
-    
-    desired_retention = 0.8
-    
-    for r in np.linspace(0, 1., num=1001):
-        if pr_in_ranking(clf, X_test, y_test, r) > desired_retention:
-            break;
-                
-    return -r
     
 def run_benchmark(config, classifiers, classifiers_gridparameters):
     """ Runs the benchmark code, see voya_config_example for argument explanation
@@ -184,12 +152,12 @@ def run_benchmark(config, classifiers, classifiers_gridparameters):
             voya_logger.info('Performing grid search for {}'.format(clf_name))
             skf = sklearn.cross_validation.StratifiedKFold(y_train, n_folds=config['num_folds'])
 
-            ranking = lambda: voya_plotter.PrInRanking(config['ranking_Frac'], config['desired_retention'])
+            ranking = voya_plotter.PrInRanking(config['ranking_Frac'], config['desired_retention'])
             if (config['gridsearch_metric'] == 'PosRate'):
-                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=pr_in_ranking,
+                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.pr_in_ranking,
                                n_jobs=config['num_cores'])
             elif (config['gridsearch_metric'] == 'Frac'):
-                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=frac_to_Xpercent,
+                clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring=ranking.frac_to_Xpercent,
                                n_jobs=config['num_cores'])
             else:
                 clf = GridSearchCV(estimator=clf_notoptimized, param_grid=param_grid, cv=skf, scoring='roc_auc',
